@@ -1,21 +1,43 @@
 package ru.otus.spring02.model;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by хитрый жук on 23.12.2018.
  */
+@Entity
+@Table(name = "authors")
 public class Author {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private List<Book> books;
+
+    @ManyToMany(cascade = CascadeType.PERSIST, mappedBy = "authors")
+    private Set<Book> books;
+
+    @Column(name = "author_name")
     private String name;
 
     public Author(String authorName) {
         this.name = authorName;
     }
 
-    public Author(List<Book> books, String name) {
+    public Author(Set<Book> books, String name) {
         this.books = books;
         this.name = name;
     }
@@ -31,11 +53,14 @@ public class Author {
         this.id = id;
     }
 
-    public List<Book> getBooks() {
+    public Set<Book> getBooks() {
+        if (books == null) {
+            return new HashSet<>();
+        }
         return books;
     }
 
-    public void setBooks(List<Book> books) {
+    public void setBooks(Set<Book> books) {
         this.books = books;
     }
 

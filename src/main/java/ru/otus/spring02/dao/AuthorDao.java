@@ -14,7 +14,7 @@ public interface AuthorDao {
 
     Author addNewAuthor(Author author);
 
-    int deleteAuthor(Author author);
-    int deleteAuthorById(Long id);
+    void deleteAuthor(Author author);
+    boolean deleteAuthorById(Long id);
     int deleteAll();
 }

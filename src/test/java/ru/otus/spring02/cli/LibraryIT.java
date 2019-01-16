@@ -7,15 +7,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.shell.Shell;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import ru.otus.spring02.dao.AuthorDaoImpl;
 import ru.otus.spring02.dao.BookDaoImpl;
+import ru.otus.spring02.dao.CommentDaoImpl;
 import ru.otus.spring02.dao.GenreDaoImpl;
+import ru.otus.spring02.dao.UserDaoImpl;
 import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
+import ru.otus.spring02.model.Comment;
 import ru.otus.spring02.model.Genre;
+import ru.otus.spring02.model.User;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class LibraryIT {
 
     private static final String TEST_TITLE_1 = "testName";
@@ -33,6 +40,9 @@ public class LibraryIT {
     private static final String TEST_AUTHOR_2 = "testAuthor2";
     private static final String TEST_GENRE_1 = "testGenre";
     private static final String TEST_GENRE_2 = "testGenre2";
+    private static final String TEST_USER = "testUser";
+    private static final String TEST_TEXT_1 = "testText1";
+    private static final String TEST_TEXT_2 = "testText2";
 
     @Autowired
     private Shell shell;
@@ -46,11 +56,19 @@ public class LibraryIT {
     @Autowired
     private GenreDaoImpl genreDao;
 
+    @Autowired
+    private CommentDaoImpl commentDao;
+
+    @Autowired
+    private UserDaoImpl userDao;
+
     @Before
     public void init() {
+        bookDao.deleteAll();
         genreDao.deleteAll();
         authorDao.deleteAll();
-        bookDao.deleteAll();
+        userDao.deleteAll();
+        commentDao.deleteAll();
     }
 
     @Test
@@ -109,6 +127,23 @@ public class LibraryIT {
     }
 
     @Test
+    public void getAllCommentsForBookTest() throws Exception {
+        Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        User user = userDao.addUser(new User(TEST_USER));
+        Comment comment1 = new Comment(book, user, TEST_TEXT_1);
+        Comment comment2 = new Comment(book, user, TEST_TEXT_2);
+
+        commentDao.addComment(comment1);
+        commentDao.addComment(comment2);
+
+        Object result = shell.evaluate(() -> "comm-by " + book.getId());
+
+        assertThat(result.toString())
+                .isNotNull()
+                .contains(TEST_TEXT_1, TEST_TEXT_2);
+    }
+
+    @Test
     public void addNewBookOneAuthorWhenSuccessfulTest() throws Exception {
         shell.evaluate(() -> "add-book " + TEST_GENRE_1 + " " + TEST_TITLE_1 + " " + TEST_AUTHOR_1);
 
@@ -164,6 +199,20 @@ public class LibraryIT {
     }
 
     @Test
+    public void addNewCommentToBookTest() throws Exception {
+        Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        Long id = book.getId();
+
+        shell.evaluate(() -> "add-comm " + id + " " + TEST_USER + " " + TEST_TEXT_1);
+
+        List<String> result = commentDao.getCommentsByBookId(id);
+        assertThat(result)
+                .isNotNull()
+                .hasSize(1)
+                .contains(TEST_TEXT_1);
+    }
+
+    @Test
     public void updateBookTitleByIdTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         Long id = book.getId();
@@ -182,6 +231,19 @@ public class LibraryIT {
         String expected = "Book doesn't exist";
 
         assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    public void updateCommentByIdTest() throws Exception {
+        Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        User user = userDao.addUser(new User(TEST_USER));
+        Comment comment = new Comment(book, user, TEST_TEXT_1);
+        commentDao.addComment(comment);
+
+        shell.evaluate(() -> "upd-comm " + comment.getId() + " " + TEST_TEXT_2);
+
+        Comment updatedComment = commentDao.getCommentById(comment.getId());
+        assertThat(updatedComment.getCommentText()).isEqualTo(TEST_TEXT_2);
     }
 
     @Test
@@ -247,11 +309,25 @@ public class LibraryIT {
                 .doesNotContain(genre1);
     }
 
+    @Test
+    public void deleteCommentByIdTest() throws Exception {
+        Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
+        User user = userDao.addUser(new User(TEST_USER));
+        Comment comment = new Comment(book, user, TEST_TEXT_1);
+        commentDao.addComment(comment);
+        Long id = comment.getId();
+
+        shell.evaluate(() -> "del-comm " + id);
+
+        Comment testComment = commentDao.getCommentById(id);
+        assertThat(testComment).isNull();
+    }
+
     private Book addTestBookToDb(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
         author = authorDao.addNewAuthor(author);
-        List<Author> authors = new ArrayList<>();
+        Set<Author> authors = new HashSet<>();
         authors.add(author);
 
         Genre genre = addTestGenre(genreName);

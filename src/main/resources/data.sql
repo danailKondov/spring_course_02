@@ -9,6 +9,10 @@ INSERT INTO authors (author_name) VALUES ('Л.Толстой');
 INSERT INTO authors (author_name) VALUES ('Ф.Достоевский');
 INSERT INTO authors (author_name) VALUES ('В.Пелевин');
 
+INSERT INTO users (user_name) VALUES ('UsualTroll');
+INSERT INTO users (user_name) VALUES ('FatTroll');
+INSERT INTO users (user_name) VALUES ('ThinTroll');
+
 INSERT INTO books (title, genre_id)
 VALUES ('Восточный экспресс', (SELECT id FROM genres WHERE genre_name = 'детектив'));
 
@@ -29,6 +33,26 @@ VALUES ('Война и преступление', (SELECT id FROM genres WHERE g
 
 INSERT INTO books (title)
 VALUES ('Война и преступление2');
+
+INSERT INTO book_comments (comment_text, comment_date, user_id, book_id)
+VALUES ('Читалось долго и с усилием, чтобы хоть что-то понять и отделить юмор и сатиру от идеи. Кажется, мне это не удалось...',
+        '2017-10-25 15:46:00',
+        (SELECT id FROM users WHERE user_name = 'UsualTroll'),
+        (SELECT id FROM books WHERE title = 'Generation П'));
+
+INSERT INTO book_comments (comment_text, comment_date, user_id, book_id)
+VALUES ('Редкая совместная работа двух классиков русской литературы в жанре детектива. Мастрид для всех думающих людей.',
+        '2018-11-24 16:50:00',
+        (SELECT id FROM users WHERE user_name = 'FatTroll'),
+        (SELECT id FROM books WHERE title = 'Война и преступление'));
+
+INSERT INTO book_comments (comment_text, comment_date, user_id, book_id)
+VALUES ('Кроме матерных слов в этом отзыве написать нечего. Отвратительная компания. ' ||
+        'У нас домашний переезд Благовещенск - Ярославль. Контейнер 5тн. Сдали и заключили контейнер на доставку 14 октября. ' ||
+        'Сейчас январь - контейнер до сих пор не доставили. Заплатили 70 т.р. Контейнер 2 месяца стоял у них на площадке. ',
+        '2019-01-15 12:30:00',
+        (SELECT id FROM users WHERE user_name = 'ThinTroll'),
+        (SELECT id FROM books WHERE title = 'Восточный экспресс'));
 
 
 INSERT INTO books_authors (authors_id, books_id)

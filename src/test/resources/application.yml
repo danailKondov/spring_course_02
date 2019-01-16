@@ -1,9 +1,15 @@
 spring:
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/spring_library_test
+#    username: postgres
+#    password: pass
+#    initialization-mode: always
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/spring_library_test
-    username: postgres
-    password: pass
-    initialization-mode: always
+        url: jdbc:h2:mem:testdb
+        username: sa
+        password:
+        initialization-mode: always
 
   shell:
     interactive:

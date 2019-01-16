@@ -4,3 +4,11 @@ spring:
     username: postgres
     password: pass
     initialization-mode: always
+
+#  jpa:
+#    generate-ddl: true
+
+logging:
+  level:
+    root: error
+

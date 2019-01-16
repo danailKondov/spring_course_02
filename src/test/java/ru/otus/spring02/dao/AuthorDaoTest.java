@@ -1,11 +1,12 @@
 package ru.otus.spring02.dao;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Author;
 
@@ -17,9 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Created by хитрый жук on 28.12.2018.
  */
-@JdbcTest
 @RunWith(SpringRunner.class)
-@Import(AuthorDaoImpl.class)
+@DataJpaTest
+@DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
+@Import({AuthorDaoImpl.class})
 public class AuthorDaoTest {
 
     private static final String TEST_NAME_1 = "testName";
@@ -28,10 +30,8 @@ public class AuthorDaoTest {
     @Autowired
     private AuthorDaoImpl dao;
 
-    @Before
-    public void init() {
-        dao.deleteAll();
-    }
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Test
     public void addNewAuthorTest() {
@@ -104,7 +104,7 @@ public class AuthorDaoTest {
     private void addTestAuthor(String testName) {
         Author author = new Author();
         author.setName(testName);
-        dao.addNewAuthor(author);
+        entityManager.persist(author);
     }
 
 }
