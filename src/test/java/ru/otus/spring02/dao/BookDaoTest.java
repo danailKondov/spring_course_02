@@ -1,27 +1,31 @@
 package ru.otus.spring02.dao;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
 import ru.otus.spring02.model.Genre;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by хитрый жук on 28.12.2018.
  */
-@JdbcTest
 @RunWith(SpringRunner.class)
-@Import({AuthorDaoImpl.class, GenreDaoImpl.class, BookDaoImpl.class})
+@DataJpaTest
+@DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
+@Import({BookDaoImpl.class})
 public class BookDaoTest {
 
     private static final String TEST_TITLE_1 = "testName";
@@ -37,17 +41,7 @@ public class BookDaoTest {
     private BookDaoImpl bookDao;
 
     @Autowired
-    private AuthorDaoImpl authorDao;
-
-    @Autowired
-    private GenreDaoImpl genreDao;
-
-    @Before
-    public void init() {
-        genreDao.deleteAll();
-        authorDao.deleteAll();
-        bookDao.deleteAll();
-    }
+    private TestEntityManager entityManager;
 
     @Test
     public void addNewBookTest() throws Exception {
@@ -91,7 +85,8 @@ public class BookDaoTest {
     public void getBookByAuthorTest() throws Exception {
         Book expectedBook = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         addTestBookToDb(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
-        Author author = expectedBook.getAuthors().get(0);
+        Iterator<Author> iterator = expectedBook.getAuthors().iterator();
+        Author author = iterator.next();
 
         List<Book> books = bookDao.getBooksByAuthor(author);
         Book resultBook = books.get(0);
@@ -177,8 +172,8 @@ public class BookDaoTest {
     private Book addTestBookToDb(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
-        author = authorDao.addNewAuthor(author);
-        List<Author> authors = new ArrayList<>();
+        author = entityManager.persist(author);
+        Set<Author> authors = new HashSet<>();
         authors.add(author);
 
         Genre genre = addTestGenre(genreName);
@@ -188,13 +183,12 @@ public class BookDaoTest {
         book.setAuthors(authors);
         book.setGenre(genre);
 
-        return bookDao.addNewBook(book);
+        return entityManager.persist(book);
     }
 
     private Genre addTestGenre(String testName) {
         Genre genre = new Genre();
         genre.setGenreName(testName);
-        genre = genreDao.addGenre(genre);
-        return genre;
+        return entityManager.persist(genre);
     }
 }

@@ -1,17 +1,11 @@
 package ru.otus.spring02.dao;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.otus.spring02.model.Genre;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 /**
@@ -20,60 +14,38 @@ import java.util.List;
 @Repository
 public class GenreDaoImpl implements GenreDao {
 
-    private final NamedParameterJdbcOperations namedJdbc;
-
-    @Autowired
-    public GenreDaoImpl(NamedParameterJdbcOperations namedJdbc) {
-        this.namedJdbc = namedJdbc;
-    }
+    @PersistenceContext
+    private EntityManager em;
 
     @Override
     public List<Genre> getAllGenres() {
-        return namedJdbc.getJdbcOperations().query("SELECT * FROM genres", new GenreMapper());
+        return em.createQuery("SELECT g FROM Genre g", Genre.class).getResultList();
     }
 
     @Override
     public Genre addGenre(Genre genre) {
-        MapSqlParameterSource param = new MapSqlParameterSource();
-        param.addValue("g_name", genre.getGenreName());
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        namedJdbc.update("INSERT INTO genres (genre_name) VALUES (:g_name)", param, keyHolder, new String[] { "id" });
-        genre.setId(keyHolder.getKey().longValue());
+        em.persist(genre);
         return genre;
     }
 
     @Override
     public Genre getGenreByName(String genreName) {
-        MapSqlParameterSource param = new MapSqlParameterSource();
-        param.addValue("g_name", genreName);
+        TypedQuery<Genre> query = em.createQuery("SELECT g FROM Genre g WHERE g.genreName = :name", Genre.class);
+        query.setParameter("name", genreName);
         try {
-            return namedJdbc.queryForObject("SELECT * FROM genres WHERE genre_name = :g_name", param, new GenreMapper());
-        } catch (DataAccessException e) {
+            return query.getSingleResult();
+        } catch (Exception e) {
             return null;
         }
     }
 
     @Override
-    public int deleteGenre(Genre genre) {
-        MapSqlParameterSource param = new MapSqlParameterSource();
-        param.addValue("id", genre.getId());
-        namedJdbc.update("UPDATE books SET genre_id = null WHERE genre_id = :id", param);
-        return namedJdbc.update("DELETE FROM genres WHERE id = :id", param);
+    public void deleteGenre(Genre genre) {
+        em.remove(genre);
     }
 
     @Override
     public int deleteAll() {
-        namedJdbc.getJdbcOperations().update("UPDATE books SET genre_id = null");
-        return namedJdbc.getJdbcOperations().update("DELETE FROM genres");
-    }
-
-    private static class GenreMapper implements RowMapper<Genre> {
-        @Override
-        public Genre mapRow(ResultSet resultSet, int i) throws SQLException {
-            Genre genre = new Genre();
-            genre.setId(resultSet.getLong("id"));
-            genre.setGenreName(resultSet.getString("genre_name"));
-            return genre;
-        }
+        return em.createQuery("DELETE FROM Genre").executeUpdate();
     }
 }

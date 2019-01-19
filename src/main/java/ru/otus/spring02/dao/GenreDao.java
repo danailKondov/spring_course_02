@@ -13,6 +13,6 @@ public interface GenreDao {
 
     Genre addGenre(Genre genre);
 
-    int deleteGenre(Genre genre);
+    void deleteGenre(Genre genre);
     int deleteAll();
 }
