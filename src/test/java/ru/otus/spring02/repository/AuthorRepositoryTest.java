@@ -1,11 +1,10 @@
-package ru.otus.spring02.dao;
+package ru.otus.spring02.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Author;
@@ -21,22 +20,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
-@Import({AuthorDaoImpl.class})
-public class AuthorDaoTest {
+public class AuthorRepositoryTest {
 
     private static final String TEST_NAME_1 = "testName";
     private static final String TEST_NAME_2 = "testName2";
 
     @Autowired
-    private AuthorDaoImpl dao;
+    private AuthorRepository repository;
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Test
     public void addNewAuthorTest() {
-        addTestAuthor(TEST_NAME_1);
-        List<String> authors = dao.getAllAuthorsNames();
+        Author author = new Author();
+        author.setName(TEST_NAME_1);
+        repository.save(author);
+
+        List<String> authors = repository.findAllAuthorsNames();
         assertThat(authors)
                 .isNotEmpty()
                 .hasSize(1)
@@ -45,13 +46,13 @@ public class AuthorDaoTest {
 
     @Test
     public void getAllAuthorsNamesTest() {
-        List<String> authors = dao.getAllAuthorsNames();
+        List<String> authors = repository.findAllAuthorsNames();
         assertThat(authors).isEmpty();
 
         addTestAuthor(TEST_NAME_1);
         addTestAuthor(TEST_NAME_2);
 
-        authors = dao.getAllAuthorsNames();
+        authors = repository.findAllAuthorsNames();
 
         assertThat(authors)
                 .hasSize(2)
@@ -61,7 +62,7 @@ public class AuthorDaoTest {
     @Test
     public void getAuthorByNameTest() {
         addTestAuthor(TEST_NAME_1);
-        Author author = dao.getAuthorByName(TEST_NAME_1);
+        Author author = repository.findAuthorByName(TEST_NAME_1);
         assertThat(author.getName()).isEqualTo(TEST_NAME_1);
     }
 
@@ -70,15 +71,16 @@ public class AuthorDaoTest {
         addTestAuthor(TEST_NAME_1);
         addTestAuthor(TEST_NAME_2);
 
-        List<String> authors = dao.getAllAuthorsNames();
+        List<String> authors = repository.findAllAuthorsNames();
         assertThat(authors)
                 .hasSize(2)
                 .contains(TEST_NAME_1, TEST_NAME_2);
 
-        Author author = dao.getAuthorByName(TEST_NAME_1);
-        dao.deleteAuthor(author);
+        Author author = repository.findAuthorByName(TEST_NAME_1);
+        int result = repository.deleteAuthorById(author.getId());
 
-        authors = dao.getAllAuthorsNames();
+        authors = repository.findAllAuthorsNames();
+        assertThat(result > 0).isTrue();
         assertThat(authors)
                 .hasSize(1)
                 .contains(TEST_NAME_2)
@@ -90,14 +92,14 @@ public class AuthorDaoTest {
         addTestAuthor(TEST_NAME_1);
         addTestAuthor(TEST_NAME_2);
 
-        List<String> authors = dao.getAllAuthorsNames();
+        List<String> authors = repository.findAllAuthorsNames();
         assertThat(authors)
                 .hasSize(2)
                 .contains(TEST_NAME_1, TEST_NAME_2);
 
-        dao.deleteAll();
+        repository.deleteAll();
 
-        authors = dao.getAllAuthorsNames();
+        authors = repository.findAllAuthorsNames();
         assertThat(authors).isEmpty();
     }
 

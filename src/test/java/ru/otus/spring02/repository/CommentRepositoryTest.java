@@ -1,11 +1,10 @@
-package ru.otus.spring02.dao;
+package ru.otus.spring02.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Author;
@@ -16,6 +15,7 @@ import ru.otus.spring02.model.User;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,8 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext
-@Import({CommentDaoImpl.class, UserDaoImpl.class})
-public class CommentDaoTest {
+public class CommentRepositoryTest {
 
     private static final String TEST_USER = "testUser";
     private static final String TEST_TEXT_1 = "testText";
@@ -37,10 +36,10 @@ public class CommentDaoTest {
     private static final String TEST_GENRE = "testGenre";
 
     @Autowired
-    private CommentDaoImpl commentDao;
+    private CommentRepository commentRepository;
 
     @Autowired
-    private UserDaoImpl userDao;
+    private UserRepository userRepository;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -48,28 +47,28 @@ public class CommentDaoTest {
     @Test
     public void addCommentTest() {
         Book book = addTestBookToDb(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        User user = userDao.addUser(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
 
-        commentDao.addComment(comment);
+        commentRepository.save(comment);
 
-        Comment testComment = commentDao.getCommentById(comment.getId());
-        assertThat(testComment).isNotNull();
+        Optional<Comment> testComment = commentRepository.findById(comment.getId());
+        assertThat(testComment.isPresent()).isTrue();
     }
 
     @Test
     public void getCommentByBookIdTest() {
         Book book = addTestBookToDb(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        User user = userDao.addUser(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER));
         Comment comment1 = new Comment(book, user, TEST_TEXT_1);
         Comment comment2 = new Comment(book, user, TEST_TEXT_2);
 
-        commentDao.addComment(comment1);
-        commentDao.addComment(comment2);
+        commentRepository.save(comment1);
+        commentRepository.save(comment2);
 
-        List<String> coments = commentDao.getCommentsByBookId(book.getId());
+        List<String> comments = commentRepository.findCommentsByBookId(book.getId());
 
-        assertThat(coments)
+        assertThat(comments)
                 .isNotEmpty()
                 .hasSize(2)
                 .contains(TEST_TEXT_1, TEST_TEXT_2);
@@ -78,21 +77,22 @@ public class CommentDaoTest {
     @Test
     public void deleteCommentByIdWhenSuccessfulTest() {
         Book book = addTestBookToDb(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        User user = userDao.addUser(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
-        commentDao.addComment(comment);
+        commentRepository.save(comment);
         Long id = comment.getId();
 
-        commentDao.deleteCommentById(id);
+        int result = commentRepository.deleteCommentById(id);
 
-        Comment testComment = commentDao.getCommentById(id);
-        assertThat(testComment).isNull();
+        assertThat(result > 0).isTrue();
+        Optional<Comment> testComment = commentRepository.findById(comment.getId());
+        assertThat(testComment.isPresent()).isFalse();
     }
 
     @Test
-    public void deleteCommentByIdWhenNoCommentTest() {
-        boolean result = commentDao.deleteCommentById(1000L);
-        assertThat(result).isFalse();
+    public void deleteCommentByIdWhenNoCommentTest() throws Exception {
+        int result = commentRepository.deleteCommentById(1000L);
+        assertThat(result > 0).isFalse();
     }
 
     private Book addTestBookToDb(String title, String authorName, String genreName) {

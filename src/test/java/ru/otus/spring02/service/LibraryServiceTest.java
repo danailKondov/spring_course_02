@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.otus.spring02.dao.AuthorDaoImpl;
-import ru.otus.spring02.dao.BookDaoImpl;
-import ru.otus.spring02.dao.GenreDaoImpl;
+import ru.otus.spring02.repository.AuthorRepository;
+import ru.otus.spring02.repository.BookRepository;
+import ru.otus.spring02.repository.GenreRepository;
 import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
 import ru.otus.spring02.model.Genre;
@@ -37,34 +37,34 @@ public class LibraryServiceTest {
     private static final String TEST_GENRE_2 = "testGenre2";
 
     @MockBean
-    private BookDaoImpl bookDao;
+    private BookRepository bookRepository;
 
     @MockBean
-    private AuthorDaoImpl authorDao;
+    private AuthorRepository authorRepository;
 
     @MockBean
-    private GenreDaoImpl genreDao;
+    private GenreRepository genreRepository;
 
     @Autowired
     private LibraryServiceImpl libraryService;
 
     @Before
     public void init() {
-        reset(bookDao);
-        reset(authorDao);
-        reset(genreDao);
+        reset(bookRepository);
+        reset(authorRepository);
+        reset(genreRepository);
     }
 
     @Test
     public void getAllBooksTest() throws Exception {
         libraryService.getAllBooks();
-        verify(bookDao).getAllBooks();
+        verify(bookRepository).findAll();
     }
 
     @Test
     public void getAllAuthorsNamesTest() throws Exception {
         libraryService.getAllAuthorsNames();
-        verify(authorDao).getAllAuthorsNames();
+        verify(authorRepository).findAllAuthorsNames();
     }
 
     @Test
@@ -79,11 +79,11 @@ public class LibraryServiceTest {
 
         List<Genre> genres = new ArrayList<>(Arrays.asList(genre, genre2));
 
-        when(genreDao.getAllGenres()).thenReturn(genres);
+        when(genreRepository.findAll()).thenReturn(genres);
 
         List<String> resultList = libraryService.getAllGenres();
 
-        verify(genreDao).getAllGenres();
+        verify(genreRepository).findAll();
         assertThat(resultList)
                 .isNotEmpty()
                 .hasSize(2)
@@ -93,16 +93,16 @@ public class LibraryServiceTest {
     @Test
     public void getBooksByAuthorsNameWhenSuccessfulTest() throws Exception {
         Author author = new Author();
-        when(authorDao.getAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
+        when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
 
         libraryService.getBooksByAuthorsName(TEST_AUTHOR_1);
 
-        verify(bookDao).getBooksByAuthor(author);
+        verify(bookRepository).findBooksByAuthorId(author.getId());
     }
 
     @Test
     public void getBooksByAuthorsNameWhenNoAuthorTest() throws Exception {
-        when(authorDao.getAuthorByName(TEST_AUTHOR_1)).thenReturn(null);
+        when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(null);
 
         List<Book> books = libraryService.getBooksByAuthorsName(TEST_AUTHOR_1);
 
@@ -111,10 +111,10 @@ public class LibraryServiceTest {
 
     @Test
     public void addNewGenreWhenSuccessfulTest() throws Exception {
-        when(genreDao.getGenreByName(TEST_GENRE_1)).thenReturn(null);
+        when(genreRepository.findGenreByGenreName(TEST_GENRE_1)).thenReturn(null);
         Genre genre = new Genre(TEST_GENRE_1);
         genre.setId(1L);
-        when(genreDao.addGenre(any())).thenReturn(genre);
+        when(genreRepository.save(any())).thenReturn(genre);
 
         boolean result = libraryService.addNewGenre(genre);
 
@@ -124,7 +124,7 @@ public class LibraryServiceTest {
     @Test
     public void addNewGenreWhenGenreExistsTest() throws Exception {
         Genre genre = new Genre(TEST_GENRE_1);
-        when(genreDao.getGenreByName(TEST_GENRE_1)).thenReturn(genre);
+        when(genreRepository.findGenreByGenreName(TEST_GENRE_1)).thenReturn(genre);
 
         boolean result = libraryService.addNewGenre(genre);
 
@@ -134,16 +134,16 @@ public class LibraryServiceTest {
     @Test
     public void addNewBookTestWhenSuccessful() throws Exception {
         List<String> titles = new ArrayList<>();
-        when(bookDao.getAllTitles()).thenReturn(titles);
+        when(bookRepository.findAllTitles()).thenReturn(titles);
 
         Genre genre = new Genre();
-        when(genreDao.getGenreByName(TEST_GENRE_1)).thenReturn(genre);
+        when(genreRepository.findGenreByGenreName(TEST_GENRE_1)).thenReturn(genre);
 
         Author author = new Author();
-        when(authorDao.getAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
+        when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
 
         Book book = new Book();
         book.setId(1L);
-        when(bookDao.addNewBook(any())).thenReturn(book);
+        when(bookRepository.save(any())).thenReturn(book);
     }
 }

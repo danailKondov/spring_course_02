@@ -8,11 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.shell.Shell;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
-import ru.otus.spring02.dao.AuthorDaoImpl;
-import ru.otus.spring02.dao.BookDaoImpl;
-import ru.otus.spring02.dao.CommentDaoImpl;
-import ru.otus.spring02.dao.GenreDaoImpl;
-import ru.otus.spring02.dao.UserDaoImpl;
+import ru.otus.spring02.repository.AuthorRepository;
+import ru.otus.spring02.repository.BookRepository;
+import ru.otus.spring02.repository.CommentRepository;
+import ru.otus.spring02.repository.GenreRepository;
+import ru.otus.spring02.repository.UserRepository;
 import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
 import ru.otus.spring02.model.Comment;
@@ -21,6 +21,7 @@ import ru.otus.spring02.model.User;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,27 +49,27 @@ public class LibraryIT {
     private Shell shell;
 
     @Autowired
-    private BookDaoImpl bookDao;
+    private BookRepository bookRepository;
 
     @Autowired
-    private AuthorDaoImpl authorDao;
+    private AuthorRepository authorRepository;
 
     @Autowired
-    private GenreDaoImpl genreDao;
+    private GenreRepository genreRepository;
 
     @Autowired
-    private CommentDaoImpl commentDao;
+    private CommentRepository commentRepository;
 
     @Autowired
-    private UserDaoImpl userDao;
+    private UserRepository userRepository;
 
     @Before
     public void init() {
-        bookDao.deleteAll();
-        genreDao.deleteAll();
-        authorDao.deleteAll();
-        userDao.deleteAll();
-        commentDao.deleteAll();
+        bookRepository.deleteAll();
+        genreRepository.deleteAll();
+        authorRepository.deleteAll();
+        userRepository.deleteAll();
+        commentRepository.deleteAll();
     }
 
     @Test
@@ -129,12 +130,12 @@ public class LibraryIT {
     @Test
     public void getAllCommentsForBookTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        User user = userDao.addUser(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER));
         Comment comment1 = new Comment(book, user, TEST_TEXT_1);
         Comment comment2 = new Comment(book, user, TEST_TEXT_2);
 
-        commentDao.addComment(comment1);
-        commentDao.addComment(comment2);
+        commentRepository.save(comment1);
+        commentRepository.save(comment2);
 
         Object result = shell.evaluate(() -> "comm-by " + book.getId());
 
@@ -147,10 +148,10 @@ public class LibraryIT {
     public void addNewBookOneAuthorWhenSuccessfulTest() throws Exception {
         shell.evaluate(() -> "add-book " + TEST_GENRE_1 + " " + TEST_TITLE_1 + " " + TEST_AUTHOR_1);
 
-        Author author = authorDao.getAuthorByName(TEST_AUTHOR_1);
+        Author author = authorRepository.findAuthorByName(TEST_AUTHOR_1);
         assertThat(author).isNotNull();
 
-        Book book = bookDao.getBooksByAuthor(author).get(0);
+        Book book = bookRepository.findBooksByAuthorId(author.getId()).get(0);
 
         assertThat(book.getGenre().getGenreName()).isEqualTo(TEST_GENRE_1);
         assertThat(book.getTitle()).isEqualTo(TEST_TITLE_1);
@@ -172,7 +173,7 @@ public class LibraryIT {
     public void addNewGenreWhenSuccessfulTest() throws Exception {
         shell.evaluate(() -> "add-genre " + TEST_GENRE_1);
 
-        Genre genre = genreDao.getGenreByName(TEST_GENRE_1);
+        Genre genre = genreRepository.findGenreByGenreName(TEST_GENRE_1);
 
         assertThat(genre).isNotNull();
     }
@@ -193,7 +194,7 @@ public class LibraryIT {
     public void addNewAuthorTest() throws Exception {
         shell.evaluate(() -> "add-author " + TEST_AUTHOR_1);
 
-        Author author = authorDao.getAuthorByName(TEST_AUTHOR_1);
+        Author author = authorRepository.findAuthorByName(TEST_AUTHOR_1);
 
         assertThat(author).isNotNull();
     }
@@ -205,7 +206,7 @@ public class LibraryIT {
 
         shell.evaluate(() -> "add-comm " + id + " " + TEST_USER + " " + TEST_TEXT_1);
 
-        List<String> result = commentDao.getCommentsByBookId(id);
+        List<String> result = commentRepository.findCommentsByBookId(id);
         assertThat(result)
                 .isNotNull()
                 .hasSize(1)
@@ -219,7 +220,7 @@ public class LibraryIT {
 
         shell.evaluate(() -> "upd-title-id " + id + " " + TEST_TITLE_2);
 
-        book = bookDao.getBookById(book.getId());
+        book = bookRepository.findBookById(book.getId());
         assertThat(book.getTitle()).isEqualTo(TEST_TITLE_2);
     }
 
@@ -236,14 +237,14 @@ public class LibraryIT {
     @Test
     public void updateCommentByIdTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        User user = userDao.addUser(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
-        commentDao.addComment(comment);
+        commentRepository.save(comment);
 
         shell.evaluate(() -> "upd-comm " + comment.getId() + " " + TEST_TEXT_2);
 
-        Comment updatedComment = commentDao.getCommentById(comment.getId());
-        assertThat(updatedComment.getCommentText()).isEqualTo(TEST_TEXT_2);
+        Optional<Comment> updatedComment = commentRepository.findById(comment.getId());
+        assertThat(updatedComment.get().getCommentText()).isEqualTo(TEST_TEXT_2);
     }
 
     @Test
@@ -254,7 +255,7 @@ public class LibraryIT {
         Long id = book2.getId();
         shell.evaluate(() -> "del-book " + id);
 
-        List<Book> books = bookDao.getAllBooks();
+        List<Book> books = bookRepository.findAll();
         assertThat(books)
                 .hasSize(1)
                 .contains(book1)
@@ -278,7 +279,7 @@ public class LibraryIT {
 
         shell.evaluate(() -> "del-auth " + author.getId());
 
-        List<String> authors = authorDao.getAllAuthorsNames();
+        List<String> authors = authorRepository.findAllAuthorsNames();
         assertThat(authors)
                 .hasSize(1)
                 .contains(TEST_AUTHOR_2)
@@ -302,7 +303,7 @@ public class LibraryIT {
 
         shell.evaluate(() -> "del-genre " + TEST_GENRE_1);
 
-        List<Genre> genres = genreDao.getAllGenres();
+        List<Genre> genres = genreRepository.findAll();
         assertThat(genres)
                 .hasSize(1)
                 .contains(genre2)
@@ -312,21 +313,21 @@ public class LibraryIT {
     @Test
     public void deleteCommentByIdTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        User user = userDao.addUser(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
-        commentDao.addComment(comment);
+        commentRepository.save(comment);
         Long id = comment.getId();
 
         shell.evaluate(() -> "del-comm " + id);
 
-        Comment testComment = commentDao.getCommentById(id);
-        assertThat(testComment).isNull();
+        Optional<Comment> testComment = commentRepository.findById(id);
+        assertThat(testComment.isPresent()).isFalse();
     }
 
     private Book addTestBookToDb(String title, String authorName, String genreName) {
         Author author = new Author();
         author.setName(authorName);
-        author = authorDao.addNewAuthor(author);
+        author = authorRepository.save(author);
         Set<Author> authors = new HashSet<>();
         authors.add(author);
 
@@ -337,19 +338,18 @@ public class LibraryIT {
         book.setAuthors(authors);
         book.setGenre(genre);
 
-        return bookDao.addNewBook(book);
+        return bookRepository.save(book);
     }
 
     private Author addTestAuthor(String testName) {
         Author author = new Author();
         author.setName(testName);
-        return authorDao.addNewAuthor(author);
+        return authorRepository.save(author);
     }
 
     private Genre addTestGenre(String testName) {
         Genre genre = new Genre();
         genre.setGenreName(testName);
-        genre = genreDao.addGenre(genre);
-        return genre;
+        return genreRepository.save(genre);
     }
 }
