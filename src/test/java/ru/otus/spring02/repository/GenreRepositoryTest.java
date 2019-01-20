@@ -1,11 +1,10 @@
-package ru.otus.spring02.dao;
+package ru.otus.spring02.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Genre;
@@ -20,35 +19,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
-@Import({GenreDaoImpl.class})
-public class GenreDaoTest {
+public class GenreRepositoryTest {
 
     private static final String TEST_NAME_1 = "testName";
     private static final String TEST_NAME_2 = "testName2";
 
     @Autowired
-    private GenreDaoImpl dao;
+    private GenreRepository repository;
 
     @Autowired
     private TestEntityManager entityManager;
 
     @Test
     public void addGenreTest() {
-        addTestGenre(TEST_NAME_1);
-        List<Genre> genres = dao.getAllGenres();
+        Genre genre = new Genre();
+        genre.setGenreName(TEST_NAME_1);
+        repository.save(genre);
+
+        List<Genre> genres = repository.findAll();
         assertThat(genres).isNotEmpty();
         assertThat(genres.get(0)).isNotNull().hasNoNullFieldsOrProperties();
     }
 
     @Test
     public void getAllGenresTest() {
-        List<Genre> genres = dao.getAllGenres();
+        List<Genre> genres = repository.findAll();
         assertThat(genres).isEmpty();
 
         Genre genre = addTestGenre(TEST_NAME_1);
         Genre genre2 = addTestGenre(TEST_NAME_2);
 
-        genres = dao.getAllGenres();
+        genres = repository.findAll();
         assertThat(genres)
                 .hasSize(2)
                 .contains(genre, genre2);
@@ -57,7 +58,7 @@ public class GenreDaoTest {
     @Test
     public void getGenreByNameTest() {
         Genre genre1 = addTestGenre(TEST_NAME_1);
-        Genre genre2 = dao.getGenreByName(TEST_NAME_1);
+        Genre genre2 = repository.findGenreByGenreName(TEST_NAME_1);
         assertThat(genre2).isEqualTo(genre1);
     }
 
@@ -65,14 +66,15 @@ public class GenreDaoTest {
     public void deleteGenreTest() {
         Genre genre = addTestGenre(TEST_NAME_1);
         Genre genre2 = addTestGenre(TEST_NAME_2);
-        List<Genre> genres = dao.getAllGenres();
+        List<Genre> genres = repository.findAll();
         assertThat(genres)
                 .hasSize(2)
                 .contains(genre, genre2);
 
-        dao.deleteGenre(genre);
+        int result = repository.deleteGenreByGenreName(genre.getGenreName());
 
-        genres = dao.getAllGenres();
+        genres = repository.findAll();
+        assertThat(result > 0).isTrue();
         assertThat(genres)
                 .hasSize(1)
                 .contains(genre2).
@@ -83,14 +85,14 @@ public class GenreDaoTest {
     public void deleteAllTest() {
         Genre genre = addTestGenre(TEST_NAME_1);
         Genre genre2 = addTestGenre(TEST_NAME_2);
-        List<Genre> genres = dao.getAllGenres();
+        List<Genre> genres = repository.findAll();
         assertThat(genres)
                 .hasSize(2)
                 .contains(genre, genre2);
 
-        dao.deleteAll();
+        repository.deleteAll();
 
-        genres = dao.getAllGenres();
+        genres = repository.findAll();
         assertThat(genres).isEmpty();
     }
 

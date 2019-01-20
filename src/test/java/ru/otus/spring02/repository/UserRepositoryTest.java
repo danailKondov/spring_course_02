@@ -1,11 +1,10 @@
-package ru.otus.spring02.dao;
+package ru.otus.spring02.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.User;
@@ -18,14 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext
-@Import({CommentDaoImpl.class, UserDaoImpl.class})
-public class UserDaoImplTest {
+public class UserRepositoryTest {
 
     private static final String TEST_USER_1 = "testUser";
     private static final String TEST_USER_2 = "testUser2";
 
     @Autowired
-    private UserDaoImpl userDao;
+    private UserRepository userRepository;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -45,7 +43,7 @@ public class UserDaoImplTest {
         createTestUser(TEST_USER_1);
         createTestUser(TEST_USER_2);
 
-        User testUser = userDao.getUserByName(TEST_USER_2);
+        User testUser = userRepository.findUserByUserName(TEST_USER_2);
 
         assertThat(testUser)
                 .isNotNull()
@@ -54,7 +52,6 @@ public class UserDaoImplTest {
 
     private User createTestUser(String name) {
         User user = new User(name);
-        userDao.addUser(user);
-        return user;
+        return userRepository.save(user);
     }
 }
