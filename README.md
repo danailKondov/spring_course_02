@@ -33,3 +33,8 @@
 
 решение: см. ветку _migrate_to_spring_data_repo_
 
+## Использовать MongoDB и spring-data для хранения информации о книгах
+
+Тесты можно реализовать с помощью spring-boot-strter-embedded-mongodb 
+
+решение: см. ветку _migrate_to_mongodb_

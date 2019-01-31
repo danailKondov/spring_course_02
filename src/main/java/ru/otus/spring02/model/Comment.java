@@ -1,47 +1,15 @@
 package ru.otus.spring02.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import java.util.Date;
 
-/**
- * Created by хитрый жук on 15.01.2019.
- */
-@Entity
-@Table(name = "book_comments")
 public class Comment {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "book_id")
-    private Book book;
-
-    @Column(name = "comment_text")
+    private String userName;
     private String commentText;
-
-    @Column(name = "comment_date")
-    @Temporal(TemporalType.TIMESTAMP)
     private Date commentDate;
 
-    public Comment(Book book, User user, String comment) {
-        this.book = book;
-        this.user = user;
+    public Comment(String userName, String comment) {
+        this.userName = userName;
         commentText = comment;
         commentDate = new Date();
     }
@@ -50,20 +18,12 @@ public class Comment {
         commentDate = new Date();
     }
 
-    public Long getId() {
-        return id;
+    public String getUser() {
+        return userName;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(String user) {
+        this.userName = userName;
     }
 
     public String getCommentText() {
@@ -82,11 +42,24 @@ public class Comment {
         this.commentDate = commentDate;
     }
 
-    public Book getBook() {
-        return book;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Comment comment = (Comment) o;
+
+        if (userName != null ? !userName.equals(comment.userName) : comment.userName != null) return false;
+        if (getCommentText() != null ? !getCommentText().equals(comment.getCommentText()) : comment.getCommentText() != null)
+            return false;
+        return getCommentDate() != null ? getCommentDate().equals(comment.getCommentDate()) : comment.getCommentDate() == null;
     }
 
-    public void setBook(Book book) {
-        this.book = book;
+    @Override
+    public int hashCode() {
+        int result = userName != null ? userName.hashCode() : 0;
+        result = 31 * result + (getCommentText() != null ? getCommentText().hashCode() : 0);
+        result = 31 * result + (getCommentDate() != null ? getCommentDate().hashCode() : 0);
+        return result;
     }
 }

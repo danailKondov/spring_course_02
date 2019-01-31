@@ -9,10 +9,8 @@ import org.springframework.shell.table.SimpleHorizontalAligner;
 import org.springframework.shell.table.TableBuilder;
 import org.springframework.shell.table.TableModel;
 import org.springframework.shell.table.TableModelBuilder;
-import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
 import ru.otus.spring02.model.Comment;
-import ru.otus.spring02.model.Genre;
 import ru.otus.spring02.service.LibraryServiceImpl;
 
 import java.util.Arrays;
@@ -59,7 +57,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Get comments by book id", key = "comm-by")
     public List<String> getAllCommentsForBook(
-            @ShellOption(help = "book id") Long bookId) {
+            @ShellOption(help = "book id") String bookId) {
         return libraryService.getAllComments(bookId);
     }
 
@@ -70,9 +68,8 @@ public class LibraryCli {
             @ShellOption(help = "authors, use comma as delimiter ") String authors) {
 
         String[] authorsArr = authors.split(",");
-        Set<Author> authorList = Arrays.stream(authorsArr).map(Author::new).collect(Collectors.toSet());
-        Genre genre = new Genre(genreName);
-        boolean isSuccessful = libraryService.addNewBook(new Book(title, genre, authorList));
+        Set<String> authorList = Arrays.stream(authorsArr).collect(Collectors.toSet());
+        boolean isSuccessful = libraryService.addNewBook(new Book(title, genreName, authorList));
         if (isSuccessful) {
             return "New book was added successfully";
         } else {
@@ -80,26 +77,9 @@ public class LibraryCli {
         }
     }
 
-    @ShellMethod(value = "Add new genre", key = "add-genre")
-    public String addNewGenre(
-            @ShellOption(help = "genre name") String genre) {
-        boolean isSuccessful = libraryService.addNewGenre(new Genre(genre));
-        if (isSuccessful) {
-            return "New genre was added successfully";
-        } else {
-            return "Genre already exists";
-        }
-    }
-
-    @ShellMethod(value = "Add new author", key = "add-author")
-    public void addNewAuthor(
-            @ShellOption(help = "author name") String authorName) {
-        libraryService.addNewAuthor(new Author(authorName));
-    }
-
     @ShellMethod(value = "Add new comment", key = "add-comm")
     public String addNewCommentToBook(
-            @ShellOption(help = "book id") Long bookId,
+            @ShellOption(help = "book id") String bookId,
             @ShellOption(help = "user name") String userName,
             @ShellOption(help = "comment") String comment) {
         boolean isSuccessful = libraryService.addComment(bookId, userName, comment);
@@ -112,7 +92,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Update book title", key = "upd-title-id")
     public String updateBookTitleById(
-            @ShellOption(help = "id") Long id,
+            @ShellOption(help = "id") String id,
             @ShellOption(help = "new title") String newTitle) {
         boolean isSuccessful = libraryService.updateBookTitleById(id, newTitle);
         if (isSuccessful) {
@@ -122,62 +102,14 @@ public class LibraryCli {
         }
     }
 
-    @ShellMethod(value = "Update comment", key = "upd-comm")
-    public String updateCommentById(
-            @ShellOption(help = "id") Long id,
-            @ShellOption(help = "new comment") String newComment) {
-        Comment comment = new Comment();
-        comment.setId(id);
-        comment.setCommentText(newComment);
-        boolean isSuccessful = libraryService.updateComment(comment);
-        if (isSuccessful) {
-            return "Comment was updated successfully";
-        } else {
-            return "Comment doesn't exist";
-        }
-    }
-
     @ShellMethod(value = "Delete book", key = "del-book")
     public String deleteBookById(
-            @ShellOption(help = "id of book to delete") Long id) {
-        boolean isSuccessful = libraryService.deleteBookById(id);
+            @ShellOption(help = "id of book to delete") String bookId) {
+        boolean isSuccessful = libraryService.deleteBookById(bookId);
         if (isSuccessful) {
             return "Book was deleted successfully";
         } else {
             return "Book doesn't exist";
-        }
-    }
-
-    @ShellMethod(value = "Delete author", key = "del-auth")
-    public String deleteAuthorById(
-            @ShellOption(help = "id of author to delete") Long id) {
-        boolean isSuccessful = libraryService.deleteAuthorById(id);
-        if (isSuccessful) {
-            return "Author was deleted successfully";
-        } else {
-            return "Author doesn't exist";
-        }
-    }
-
-    @ShellMethod(value = "Delete genre", key = "del-genre")
-    public String deleteGenre(
-            @ShellOption(help = "genre to delete") String genreName) {
-        boolean isSuccessful = libraryService.deleteGenre(genreName);
-        if (isSuccessful) {
-            return "Genre was deleted successfully";
-        } else {
-            return "Genre doesn't exist";
-        }
-    }
-
-    @ShellMethod(value = "Delete comment", key = "del-comm")
-    public String deleteCommentById(
-            @ShellOption(help = "id of comment to delete") Long id) {
-        boolean isSuccessful = libraryService.deleteCommentById(id);
-        if (isSuccessful) {
-            return "Comment was deleted successfully";
-        } else {
-            return "Comment doesn't exist";
         }
     }
 
@@ -190,12 +122,12 @@ public class LibraryCli {
                 .addValue("Title")
                 .addValue("Genre");
         books.forEach(book -> {
-            Optional<String> authors = book.getAuthors().stream().map(Author::getName).reduce((a, b) -> a + ", " + b);
+            Optional<String> authors = book.getAuthors().stream().reduce((a, b) -> a + ", " + b);
 
-            Genre genre = book.getGenre();
+            String genre = book.getGenre();
             String genreName = "";
             if (genre != null) {
-                genreName = genre.getGenreName();
+                genreName = genre;
             }
 
             modelBuilder.addRow()

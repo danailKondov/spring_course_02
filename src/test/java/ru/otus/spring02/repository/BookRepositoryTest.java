@@ -1,15 +1,14 @@
 package ru.otus.spring02.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
-import ru.otus.spring02.model.Genre;
+import ru.otus.spring02.model.Comment;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,8 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Created by хитрый жук on 28.12.2018.
  */
 @RunWith(SpringRunner.class)
-@DataJpaTest
-@DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
+@DataMongoTest
 public class BookRepositoryTest {
 
     private static final String TEST_TITLE_1 = "testName";
@@ -34,27 +32,28 @@ public class BookRepositoryTest {
     private static final String TEST_GENRE_2 = "testGenre2";
     private static final String TEST_GENRE_3 = "testGenre3";
     private static final String TEST_AUTHOR_3 = "testAuthor3";
+    private static final String TEST_USER_1 = "testUser";
+    private static final String TEST_TEXT_1 = "testText";
+    private static final String TEST_USER_2 = "testUser2";
+    private static final String TEST_TEXT_2 = "testText2";
 
     @Autowired
     private BookRepository bookRepository;
 
-    @Autowired
-    private TestEntityManager entityManager;
+    @Before
+    public void init() {
+        bookRepository.deleteAll();
+    }
 
     @Test
     public void addNewBookTest() throws Exception {
-        Author author = new Author();
-        author.setName(TEST_AUTHOR_1);
-        author = entityManager.persist(author);
-        Set<Author> authors = new HashSet<>();
-        authors.add(author);
-
-        Genre genre = addTestGenre(TEST_GENRE_1);
+        Set<String> authors = new HashSet<>();
+        authors.add(TEST_AUTHOR_1);
 
         Book book = new Book();
         book.setTitle(TEST_TITLE_1);
+        book.setGenre(TEST_GENRE_1);
         book.setAuthors(authors);
-        book.setGenre(genre);
 
         bookRepository.save(book);
 
@@ -81,25 +80,13 @@ public class BookRepositoryTest {
     }
 
     @Test
-    public void getAllTitlesTest() throws Exception {
-        addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        addTestBookToDb(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
-
-        List<String> titles = bookRepository.findAllTitles();
-
-        assertThat(titles)
-                .hasSize(2)
-                .contains(TEST_TITLE_1, TEST_TITLE_2);
-    }
-
-    @Test
     public void getBookByAuthorTest() throws Exception {
         Book expectedBook = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         addTestBookToDb(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
-        Iterator<Author> iterator = expectedBook.getAuthors().iterator();
-        Author author = iterator.next();
+        Iterator<String> iterator = expectedBook.getAuthors().iterator();
+        String author = iterator.next();
 
-        List<Book> books = bookRepository.findBooksByAuthorId(author.getId());
+        List<Book> books = bookRepository.findBooksByAuthors(author);
         Book resultBook = books.get(0);
 
         assertThat(resultBook).isEqualTo(expectedBook);
@@ -110,7 +97,7 @@ public class BookRepositoryTest {
         Book expectedBook = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
         addTestBookToDb(TEST_TITLE_2, TEST_AUTHOR_2, TEST_GENRE_2);
 
-        Long id = expectedBook.getId();
+        String id = expectedBook.getId();
         Book resultBook = bookRepository.findBookById(id);
 
         assertThat(resultBook).isEqualTo(expectedBook);
@@ -128,6 +115,27 @@ public class BookRepositoryTest {
                 .isNotEmpty()
                 .hasSize(2)
                 .contains(expectedBook1, expectedBook2);
+    }
+
+    @Test
+    public void getCommentByBookIdTest() {
+        Set<String> authors = new HashSet<>();
+        authors.add(TEST_AUTHOR_1);
+        Book book = new Book(TEST_TITLE_1, TEST_GENRE_1, authors);
+        Comment comment1 = new Comment(TEST_USER_1, TEST_TEXT_1);
+        Comment comment2 = new Comment(TEST_USER_2, TEST_TEXT_2);
+        Set<Comment> comments = new HashSet<>();
+        comments.add(comment1);
+        comments.add(comment2);
+        book.setComments(comments);
+        bookRepository.save(book);
+
+        Book book1 = bookRepository.findBookWithCommentsById(book.getId());
+
+        assertThat(book1.getComments())
+                .isNotEmpty()
+                .hasSize(2)
+                .contains(comment1, comment2);
     }
 
     @Test
@@ -170,25 +178,15 @@ public class BookRepositoryTest {
     }
 
     private Book addTestBookToDb(String title, String authorName, String genreName) {
-        Author author = new Author();
-        author.setName(authorName);
-        author = entityManager.persist(author);
-        Set<Author> authors = new HashSet<>();
-        authors.add(author);
+        Set<String> authors = new HashSet<>();
+        authors.add(authorName);
 
-        Genre genre = addTestGenre(genreName);
 
         Book book = new Book();
         book.setTitle(title);
         book.setAuthors(authors);
-        book.setGenre(genre);
+        book.setGenre(genreName);
 
-        return entityManager.persist(book);
-    }
-
-    private Genre addTestGenre(String testName) {
-        Genre genre = new Genre();
-        genre.setGenreName(testName);
-        return entityManager.persist(genre);
+        return bookRepository.save(book);
     }
 }

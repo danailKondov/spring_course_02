@@ -1,48 +1,21 @@
 package ru.otus.spring02.model;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.Set;
 
-/**
- * Created by хитрый жук on 23.12.2018.
- */
-@Entity
-@Table(name = "books")
+@Document(collection = "books")
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "books_authors",
-            joinColumns = @JoinColumn(name = "books_id"),
-            inverseJoinColumns = @JoinColumn(name = "authors_id")
-    )
-    private Set<Author> authors;
-
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "book")
+    private String id;
+    private Set<String> authors;
     private Set<Comment> comments;
-
     private String title;
+    private String genre;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "genre_id")
-    private Genre genre;
-
-    public Book(String title, Genre genre, Set<Author> authorList) {
+    public Book(String title, String genre, Set<String> authorList) {
         this.authors = authorList;
         this.genre = genre;
         this.title = title;
@@ -51,19 +24,19 @@ public class Book {
     public Book() {
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public Set<Author> getAuthors() {
+    public Set<String> getAuthors() {
         return authors;
     }
 
-    public void setAuthors(Set<Author> authors) {
+    public void setAuthors(Set<String> authors) {
         this.authors = authors;
     }
 
@@ -75,11 +48,11 @@ public class Book {
         this.title = title;
     }
 
-    public Genre getGenre() {
+    public String getGenre() {
         return genre;
     }
 
-    public void setGenre(Genre genre) {
+    public void setGenre(String genre) {
         this.genre = genre;
     }
 
@@ -99,6 +72,8 @@ public class Book {
         Book book = (Book) o;
 
         if (getId() != null ? !getId().equals(book.getId()) : book.getId() != null) return false;
+        if (getComments() != null ? !getComments().equals(book.getComments()) : book.getComments() != null)
+            return false;
         if (getTitle() != null ? !getTitle().equals(book.getTitle()) : book.getTitle() != null) return false;
         return getGenre() != null ? getGenre().equals(book.getGenre()) : book.getGenre() == null;
     }
@@ -106,6 +81,7 @@ public class Book {
     @Override
     public int hashCode() {
         int result = getId() != null ? getId().hashCode() : 0;
+        result = 31 * result + (getComments() != null ? getComments().hashCode() : 0);
         result = 31 * result + (getTitle() != null ? getTitle().hashCode() : 0);
         result = 31 * result + (getGenre() != null ? getGenre().hashCode() : 0);
         return result;
