@@ -7,9 +7,6 @@ import ru.otus.spring02.model.Genre;
 
 import java.util.List;
 
-/**
- * Created by хитрый жук on 26.12.2018.
- */
 public interface LibraryService {
 
     List<Book> getAllBooks();
@@ -17,9 +14,11 @@ public interface LibraryService {
     List<String> getAllGenres();
     List<Book> getBooksByAuthorsName(String name);
     List<String> getAllComments(Long bookId);
+    List<Comment> getAllFullComments(Long id);
+    Book getBookById(Long id);
 
     boolean addNewGenre(Genre genre);
-    boolean addNewBook(Book book);
+    Book addNewBook(Book book);
     boolean addNewAuthor(Author author);
     boolean addComment(Long bookId, String userName, String comment);
 

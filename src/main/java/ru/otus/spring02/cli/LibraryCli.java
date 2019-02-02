@@ -72,8 +72,8 @@ public class LibraryCli {
         String[] authorsArr = authors.split(",");
         Set<Author> authorList = Arrays.stream(authorsArr).map(Author::new).collect(Collectors.toSet());
         Genre genre = new Genre(genreName);
-        boolean isSuccessful = libraryService.addNewBook(new Book(title, genre, authorList));
-        if (isSuccessful) {
+        Book book = libraryService.addNewBook(new Book(title, genre, authorList));
+        if (book.getId() != null) {
             return "New book was added successfully";
         } else {
             return "Book already exists";

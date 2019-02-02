@@ -1,5 +1,9 @@
 package ru.otus.spring02.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,10 +14,9 @@ import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created by хитрый жук on 15.01.2019.
- */
-
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -30,32 +33,5 @@ public class User {
 
     public User(String userName) {
         this.userName = userName;
-    }
-
-    public User() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public Set<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(Set<Comment> comments) {
-        this.comments = comments;
     }
 }

@@ -1,5 +1,8 @@
 package ru.otus.spring02.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,9 +16,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.util.Date;
 
-/**
- * Created by хитрый жук on 15.01.2019.
- */
+@Getter
+@Setter
 @Entity
 @Table(name = "book_comments")
 public class Comment {
@@ -48,45 +50,5 @@ public class Comment {
 
     public Comment() {
         commentDate = new Date();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getCommentText() {
-        return commentText;
-    }
-
-    public void setCommentText(String commentText) {
-        this.commentText = commentText;
-    }
-
-    public Date getCommentDate() {
-        return commentDate;
-    }
-
-    public void setCommentDate(Date commentDate) {
-        this.commentDate = commentDate;
-    }
-
-    public Book getBook() {
-        return book;
-    }
-
-    public void setBook(Book book) {
-        this.book = book;
     }
 }
