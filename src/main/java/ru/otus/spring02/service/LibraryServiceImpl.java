@@ -1,5 +1,6 @@
 package ru.otus.spring02.service;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +22,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Created by хитрый жук on 26.12.2018.
- */
 @Service
 @Transactional
 public class LibraryServiceImpl implements LibraryService {
@@ -79,6 +77,16 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
+    public List<Comment> getAllFullComments(Long id) {
+        return commentRepository.findAllById(id);
+    }
+
+    @Override
+    public Book getBookById(Long id) {
+        return bookRepository.findBookById(id);
+    }
+
+    @Override
     public boolean addNewGenre(Genre genre) {
         Genre checkGenre = genreRepository.findGenreByGenreName(genre.getGenreName());
         if (checkGenre != null) {
@@ -89,7 +97,7 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
-    public boolean addNewBook(Book book) {
+    public Book addNewBook(Book book) {
 
         Genre genre = genreRepository.findGenreByGenreName(book.getGenre().getGenreName());
         if (genre == null) {
@@ -111,25 +119,7 @@ public class LibraryServiceImpl implements LibraryService {
         }
         book.setAuthors(authorSet);
 
-        if(isBookDuplicate(book)) {
-            return false;
-        }
-
-        book = bookRepository.save(book);
-        return book.getId() != null;
-    }
-
-    private boolean isBookDuplicate(Book book) {
-        List<Book> booksWithSameTitle = bookRepository.findBooksByTitle(book.getTitle());
-        if (!booksWithSameTitle.isEmpty()) {
-            for (Book bookFromDB : booksWithSameTitle) {
-                if (book.getGenre().equals(bookFromDB.getGenre())
-                        && book.getAuthors().containsAll(bookFromDB.getAuthors())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return bookRepository.save(book);
     }
 
     @Override

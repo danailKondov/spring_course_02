@@ -158,18 +158,6 @@ public class LibraryIT {
     }
 
     @Test
-    public void addNewBookOneAuthorWhenAlreadyExistsTest() throws Exception {
-        addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-
-        Object res = shell.evaluate(() -> "add-book " + TEST_GENRE_1 + " " + TEST_TITLE_1 + " " + TEST_AUTHOR_1);
-
-        String result = res.toString();
-        String expected = "Book already exists";
-
-        assertThat(result).isEqualTo(expected);
-    }
-
-    @Test
     public void addNewGenreWhenSuccessfulTest() throws Exception {
         shell.evaluate(() -> "add-genre " + TEST_GENRE_1);
 
