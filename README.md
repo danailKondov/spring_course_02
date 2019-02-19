@@ -36,7 +36,7 @@
 
 ## Использовать MongoDB и spring-data для хранения информации о книгах
 
-Тесты можно реализовать с помощью spring-boot-strter-embedded-mongodb 
+Тесты можно реализовать с помощью spring-boot-starter-embedded-mongodb 
 
 решение: см. ветку _migrate_to_mongodb_
 
@@ -50,3 +50,12 @@
 View на Thymeleaf, classic Controllers. 
 
 решение: см. ветку _crud_web_ui_
+
+
+## Переписать приложение с использованием AJAX и REST-контроллеров
+
+Переписать приложение с классических View на AJAX архитектуру и REST-контроллеры.
+
+Сделать SPA приложение на любом из Web-фреймворков (React)
+
+решение: см. _crud_rest_react_

@@ -1,85 +1,66 @@
 package ru.otus.spring02.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.otus.spring02.model.Author;
+import org.springframework.web.bind.annotation.RestController;
 import ru.otus.spring02.model.Book;
-import ru.otus.spring02.model.Comment;
-import ru.otus.spring02.model.Genre;
 import ru.otus.spring02.service.LibraryService;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-@Controller
+import static ru.otus.spring02.util.Mapper.mapBookListToDto;
+import static ru.otus.spring02.util.Mapper.mapBookToDto;
+import static ru.otus.spring02.util.Mapper.mapCommentListToDto;
+import static ru.otus.spring02.util.Mapper.mapDtoToBook;
+
+@RestController
 public class BookController {
 
     @Autowired
     private LibraryService libraryService;
 
-    @GetMapping("/")
-    public String showAllBooksOnIndexPage(Model model) {
-        List<Book> books = libraryService.getAllBooks();
-        List<BookDto> bookDtos = books
-                .stream()
-                .map(BookDto::new)
-                .collect(Collectors.toList());
-        model.addAttribute("books", bookDtos);
-        return "index";
+    @GetMapping("/all")
+    public List<BookDto> showAllBooksOnIndexPage() {
+        return mapBookListToDto(libraryService.getAllBooks());
     }
 
     @GetMapping("/comment")
-    public String showCommentsForBookId(@RequestParam(name = "id") Long id, Model model) {
-        List<Comment> comments = libraryService.getAllFullComments(id);
-        model.addAttribute("comments", comments);
-        return "comment";
+    public List<CommentDto> showCommentsForBookId(@RequestParam(name = "id") Long id) {
+        return mapCommentListToDto(libraryService.getAllFullComments(id));
     }
 
-    @GetMapping("/edit")
-    public String showBookForEdit(@RequestParam(name = "id") Long id, Model model) {
-        Book book = libraryService.getBookById(id);
-        model.addAttribute("book", new BookDto(book));
-        return "edit";
+    @PutMapping("/edit")
+    public BookDto showBookForEdit(@RequestParam(name = "id") Long id) {
+        return mapBookToDto(libraryService.getBookById(id));
     }
 
     @PostMapping("/add")
-    public String addNewBook(@RequestParam(name = "authors") String authors,
-                             @RequestParam(name = "title") String title,
-                             @RequestParam(name = "genre") String genre,
-                             Model model) {
-        Set<Author> authorSet = mapAuthors(authors);
-        Genre genreToAdd = new Genre(genre);
-        Book book = libraryService.addNewBook(new Book(title, genreToAdd, authorSet));
-        model.addAttribute("addResult", book.getId() != null);
-        return "redirect:/";
+    public ResponseEntity<BookDto> addNewBook(@RequestBody BookDto bookDto) {
+        Book book = libraryService.addNewBook(mapDtoToBook(bookDto));
+        return book.getId() != null?
+                new ResponseEntity<>(mapBookToDto(book), HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/update")
-    public String updateBook(@RequestParam(name = "title") String title,
-                             @RequestParam(name = "id") Long id,
-                             Model model) {
+    @PutMapping("/update")
+    public BookDto updateBook(@RequestParam(name = "title") String title,
+                             @RequestParam(name = "id") Long id) {
         libraryService.updateBookTitleById(id, title);
-        Book book = libraryService.getBookById(id);
-        model.addAttribute("book", new BookDto(book));
-        return "edit";
+        return mapBookToDto(libraryService.getBookById(id));
     }
 
-    @GetMapping("/delete")
-    public String deleteBook(@RequestParam(name = "id") Long id) {
-        libraryService.deleteBookById(id);
-        return "redirect:/";
-    }
-
-    private Set<Author> mapAuthors(String authors) {
-        String[] authorsArr = authors.split(",");
-        return Arrays.stream(authorsArr)
-                .map(s -> new Author(s.trim()))
-                .collect(Collectors.toSet());
+    @DeleteMapping("/delete")
+    public ResponseEntity deleteBook(@RequestParam(name = "id") Long id) {
+        boolean result = libraryService.deleteBookById(id);
+        return result?
+                new ResponseEntity(HttpStatus.OK) :
+                new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 }
