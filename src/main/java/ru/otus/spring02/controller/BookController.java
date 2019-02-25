@@ -32,12 +32,12 @@ public class BookController {
     }
 
     @GetMapping("/comment")
-    public List<CommentDto> showCommentsForBookId(@RequestParam(name = "id") Long id) {
+    public List<CommentDto> showCommentsForBookId(@RequestParam(name = "id") String id) {
         return mapCommentListToDto(libraryService.getAllFullComments(id));
     }
 
     @PutMapping("/edit")
-    public BookDto showBookForEdit(@RequestParam(name = "id") Long id) {
+    public BookDto showBookForEdit(@RequestParam(name = "id") String id) {
         return mapBookToDto(libraryService.getBookById(id));
     }
 
@@ -51,13 +51,13 @@ public class BookController {
 
     @PutMapping("/update")
     public BookDto updateBook(@RequestParam(name = "title") String title,
-                             @RequestParam(name = "id") Long id) {
+                             @RequestParam(name = "id") String id) {
         libraryService.updateBookTitleById(id, title);
         return mapBookToDto(libraryService.getBookById(id));
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity deleteBook(@RequestParam(name = "id") Long id) {
+    public ResponseEntity deleteBook(@RequestParam(name = "id") String id) {
         boolean result = libraryService.deleteBookById(id);
         return result?
                 new ResponseEntity(HttpStatus.OK) :

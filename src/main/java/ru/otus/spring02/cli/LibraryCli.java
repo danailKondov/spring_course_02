@@ -23,9 +23,6 @@ import java.util.stream.Collectors;
 
 import static org.springframework.shell.table.CellMatchers.table;
 
-/**
- * Created by хитрый жук on 23.12.2018.
- */
 @ShellComponent
 public class LibraryCli {
 
@@ -59,7 +56,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Get comments by book id", key = "comm-by")
     public List<String> getAllCommentsForBook(
-            @ShellOption(help = "book id") Long bookId) {
+            @ShellOption(help = "book id") String bookId) {
         return libraryService.getAllComments(bookId);
     }
 
@@ -99,7 +96,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Add new comment", key = "add-comm")
     public String addNewCommentToBook(
-            @ShellOption(help = "book id") Long bookId,
+            @ShellOption(help = "book id") String bookId,
             @ShellOption(help = "user name") String userName,
             @ShellOption(help = "comment") String comment) {
         boolean isSuccessful = libraryService.addComment(bookId, userName, comment);
@@ -112,7 +109,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Update book title", key = "upd-title-id")
     public String updateBookTitleById(
-            @ShellOption(help = "id") Long id,
+            @ShellOption(help = "id") String id,
             @ShellOption(help = "new title") String newTitle) {
         boolean isSuccessful = libraryService.updateBookTitleById(id, newTitle);
         if (isSuccessful) {
@@ -124,7 +121,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Update comment", key = "upd-comm")
     public String updateCommentById(
-            @ShellOption(help = "id") Long id,
+            @ShellOption(help = "id") String id,
             @ShellOption(help = "new comment") String newComment) {
         Comment comment = new Comment();
         comment.setId(id);
@@ -139,7 +136,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Delete book", key = "del-book")
     public String deleteBookById(
-            @ShellOption(help = "id of book to delete") Long id) {
+            @ShellOption(help = "id of book to delete") String id) {
         boolean isSuccessful = libraryService.deleteBookById(id);
         if (isSuccessful) {
             return "Book was deleted successfully";
@@ -150,7 +147,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Delete author", key = "del-auth")
     public String deleteAuthorById(
-            @ShellOption(help = "id of author to delete") Long id) {
+            @ShellOption(help = "id of author to delete") String id) {
         boolean isSuccessful = libraryService.deleteAuthorById(id);
         if (isSuccessful) {
             return "Author was deleted successfully";
@@ -172,7 +169,7 @@ public class LibraryCli {
 
     @ShellMethod(value = "Delete comment", key = "del-comm")
     public String deleteCommentById(
-            @ShellOption(help = "id of comment to delete") Long id) {
+            @ShellOption(help = "id of comment to delete") String id) {
         boolean isSuccessful = libraryService.deleteCommentById(id);
         if (isSuccessful) {
             return "Comment was deleted successfully";

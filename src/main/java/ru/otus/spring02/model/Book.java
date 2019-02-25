@@ -4,48 +4,31 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = {"authors", "comments"})
-@Entity
-@Table(name = "books")
+@Document(collection = "books")
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "books_authors",
-            joinColumns = @JoinColumn(name = "books_id"),
-            inverseJoinColumns = @JoinColumn(name = "authors_id")
-    )
+    @DBRef
     private Set<Author> authors;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @DBRef
     private Set<Comment> comments;
 
     private String title;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "genre_id")
+    @DBRef
     private Genre genre;
 
     public Book(String title, Genre genre, Set<Author> authorList) {

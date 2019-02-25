@@ -13,21 +13,21 @@ public interface LibraryService {
     List<String> getAllAuthorsNames();
     List<String> getAllGenres();
     List<Book> getBooksByAuthorsName(String name);
-    List<String> getAllComments(Long bookId);
-    List<Comment> getAllFullComments(Long id);
-    Book getBookById(Long id);
+    List<String> getAllComments(String bookId);
+    List<Comment> getAllFullComments(String id);
+    Book getBookById(String id);
 
     boolean addNewGenre(Genre genre);
     Book addNewBook(Book book);
     boolean addNewAuthor(Author author);
-    boolean addComment(Long bookId, String userName, String comment);
+    boolean addComment(String bookId, String userName, String comment);
 
-    boolean updateBookTitleById(Long id, String newTitle);
+    boolean updateBookTitleById(String id, String newTitle);
     boolean updateComment(Comment comment);
 
-    boolean deleteBookById(Long id);
-    boolean deleteAuthorById(Long id);
+    boolean deleteBookById(String id);
+    boolean deleteAuthorById(String id);
     boolean deleteGenre(String genreName);
-    boolean deleteCommentById(Long id);
+    boolean deleteCommentById(String id);
     void deleteAll();
 }

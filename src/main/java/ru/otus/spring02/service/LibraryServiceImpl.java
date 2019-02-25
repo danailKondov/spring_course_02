@@ -2,7 +2,7 @@ package ru.otus.spring02.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import ru.otus.spring02.model.BookInfo;
 import ru.otus.spring02.repository.AuthorRepository;
 import ru.otus.spring02.repository.BookRepository;
 import ru.otus.spring02.repository.CommentRepository;
@@ -22,7 +22,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class LibraryServiceImpl implements LibraryService {
 
     private BookRepository bookRepository;
@@ -41,19 +40,19 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<String> getAllAuthorsNames() {
-        return authorRepository.findAllAuthorsNames();
+        return authorRepository.findAll()
+                .stream()
+                .map(Author::getName)
+                .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<String> getAllGenres() {
         return genreRepository.findAll().stream()
                 .map(Genre::getGenreName)
@@ -61,27 +60,29 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Book> getBooksByAuthorsName(String name) {
         Author author = authorRepository.findAuthorByName(name);
         if (author == null) {
             return Collections.emptyList();
         }
-        return bookRepository.findBooksByAuthorId(author.getId());
+        return bookRepository.findAllByAuthorsId(author.getId());
     }
 
     @Override
-    public List<String> getAllComments(Long bookId) {
-        return commentRepository.findCommentsByBookId(bookId);
+    public List<String> getAllComments(String bookId) {
+        return commentRepository.findCommentsByBook_Id(bookId)
+                .stream()
+                .map(Comment::getCommentText)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Comment> getAllFullComments(Long id) {
+    public List<Comment> getAllFullComments(String id) {
         return commentRepository.findAllById(id);
     }
 
     @Override
-    public Book getBookById(Long id) {
+    public Book getBookById(String id) {
         return bookRepository.findBookById(id);
     }
 
@@ -109,10 +110,8 @@ public class LibraryServiceImpl implements LibraryService {
             Author checkAuthor = authorRepository.findAuthorByName(author.getName());
             if (checkAuthor == null) {
                 author = authorRepository.save(author);
-                author.getBooks().add(book);
                 authorSet.add(author);
             } else {
-                checkAuthor.getBooks().add(book);
                 authorSet.add(checkAuthor);
             }
         }
@@ -128,7 +127,7 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
-    public boolean addComment(Long bookId, String userName, String comment) {
+    public boolean addComment(String bookId, String userName, String comment) {
         Book book = bookRepository.findBookById(bookId);
         if (book == null) {
             return false;
@@ -139,15 +138,20 @@ public class LibraryServiceImpl implements LibraryService {
             user = userRepository.save(new User(userName));
         }
 
-        Comment com = commentRepository.save(new Comment(book, user, comment));
+        BookInfo bookInfo = new BookInfo();
+        bookInfo.setId(bookId);
+        bookInfo.setTitle(book.getTitle());
+
+        Comment com = commentRepository.save(new Comment(bookInfo, user, comment));
         book.getComments().add(com);
+        bookRepository.save(book);
         return true;
     }
 
     @Override
-    public boolean updateBookTitleById(Long id, String newTitle) {
-        int result = bookRepository.updateBookTitleById(id, newTitle);
-        return result > 0;
+    public boolean updateBookTitleById(String id, String newTitle) {
+        Long result = bookRepository.updateBookTitleById(id, newTitle);
+        return result != null && result > 0;
     }
 
     @Override
@@ -159,17 +163,18 @@ public class LibraryServiceImpl implements LibraryService {
         Comment commentToUpdate = optionalComment.get();
         commentToUpdate.setCommentDate(comment.getCommentDate());
         commentToUpdate.setCommentText(comment.getCommentText());
+        commentRepository.save(commentToUpdate);
         return true;
     }
 
     @Override
-    public boolean deleteBookById(Long id) {
+    public boolean deleteBookById(String id) {
         int result = bookRepository.deleteBookById(id);
         return result > 0;
     }
 
     @Override
-    public boolean deleteAuthorById(Long id) {
+    public boolean deleteAuthorById(String id) {
         int result = authorRepository.deleteAuthorById(id);
         return result > 0;
     }
@@ -181,7 +186,7 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
-    public boolean deleteCommentById(Long id) {
+    public boolean deleteCommentById(String id) {
         int result = commentRepository.deleteCommentById(id);
         return result > 0;
     }

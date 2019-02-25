@@ -1,14 +1,11 @@
 package ru.otus.spring02.repository;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import ru.otus.spring02.model.User;
 
-/**
- * Created by хитрый жук on 19.01.2019.
- */
 @Repository
-public interface UserRepository extends CrudRepository<User, Long> {
+public interface UserRepository extends MongoRepository<User, String> {
 
     User findUserByUserName(String name);
 }

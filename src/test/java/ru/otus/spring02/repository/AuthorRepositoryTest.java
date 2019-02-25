@@ -1,24 +1,22 @@
 package ru.otus.spring02.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Author;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-/**
- * Created by хитрый жук on 28.12.2018.
- */
 @RunWith(SpringRunner.class)
-@DataJpaTest
+@DataMongoTest
 @DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
 public class AuthorRepositoryTest {
 
@@ -28,8 +26,10 @@ public class AuthorRepositoryTest {
     @Autowired
     private AuthorRepository repository;
 
-    @Autowired
-    private TestEntityManager entityManager;
+    @Before
+    public void init() {
+        repository.deleteAll();
+    }
 
     @Test
     public void addNewAuthorTest() {
@@ -37,22 +37,30 @@ public class AuthorRepositoryTest {
         author.setName(TEST_NAME_1);
         repository.save(author);
 
-        List<String> authors = repository.findAllAuthorsNames();
+        List<String> authors = getAllAuthorsNames();
+
         assertThat(authors)
                 .isNotEmpty()
                 .hasSize(1)
                 .contains(TEST_NAME_1);
     }
 
+    private List<String> getAllAuthorsNames() {
+        return repository.findAll()
+                .stream()
+                .map(Author::getName)
+                .collect(Collectors.toList());
+    }
+
     @Test
     public void getAllAuthorsNamesTest() {
-        List<String> authors = repository.findAllAuthorsNames();
+        List<String> authors = getAllAuthorsNames();
         assertThat(authors).isEmpty();
 
         addTestAuthor(TEST_NAME_1);
         addTestAuthor(TEST_NAME_2);
 
-        authors = repository.findAllAuthorsNames();
+        authors = getAllAuthorsNames();
 
         assertThat(authors)
                 .hasSize(2)
@@ -71,7 +79,7 @@ public class AuthorRepositoryTest {
         addTestAuthor(TEST_NAME_1);
         addTestAuthor(TEST_NAME_2);
 
-        List<String> authors = repository.findAllAuthorsNames();
+        List<String> authors = getAllAuthorsNames();
         assertThat(authors)
                 .hasSize(2)
                 .contains(TEST_NAME_1, TEST_NAME_2);
@@ -79,7 +87,7 @@ public class AuthorRepositoryTest {
         Author author = repository.findAuthorByName(TEST_NAME_1);
         int result = repository.deleteAuthorById(author.getId());
 
-        authors = repository.findAllAuthorsNames();
+        authors = getAllAuthorsNames();
         assertThat(result > 0).isTrue();
         assertThat(authors)
                 .hasSize(1)
@@ -92,21 +100,21 @@ public class AuthorRepositoryTest {
         addTestAuthor(TEST_NAME_1);
         addTestAuthor(TEST_NAME_2);
 
-        List<String> authors = repository.findAllAuthorsNames();
+        List<String> authors = getAllAuthorsNames();
         assertThat(authors)
                 .hasSize(2)
                 .contains(TEST_NAME_1, TEST_NAME_2);
 
         repository.deleteAll();
 
-        authors = repository.findAllAuthorsNames();
+        authors = getAllAuthorsNames();
         assertThat(authors).isEmpty();
     }
 
     private void addTestAuthor(String testName) {
         Author author = new Author();
         author.setName(testName);
-        entityManager.persist(author);
+        repository.save(author);
     }
 
 }

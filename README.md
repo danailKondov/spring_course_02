@@ -59,3 +59,12 @@ View на Thymeleaf, classic Controllers.
 Сделать SPA приложение на любом из Web-фреймворков (React)
 
 решение: см. _crud_rest_react_
+
+
+## Использовать WebFlux
+
+Вместо классического потока и embedded Web-сервера использован WebFlux.
+ 
+Для избавления от блокирующих элементов база данных (снова) переведена на MongoDB.
+
+решение: см. _migrate_to_web_flux_

@@ -25,9 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-/**
- * Created by хитрый жук on 28.12.2018.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class LibraryServiceTest {
@@ -64,17 +61,17 @@ public class LibraryServiceTest {
     @Test
     public void getAllAuthorsNamesTest() throws Exception {
         libraryService.getAllAuthorsNames();
-        verify(authorRepository).findAllAuthorsNames();
+        verify(authorRepository).findAll();
     }
 
     @Test
     public void getAllGenresTest() throws Exception {
         Genre genre = new Genre();
-        genre.setId(1L);
+        genre.setId("id1");
         genre.setGenreName(TEST_GENRE_1);
 
         Genre genre2 = new Genre();
-        genre2.setId(2L);
+        genre2.setId("id2");
         genre2.setGenreName(TEST_GENRE_2);
 
         List<Genre> genres = new ArrayList<>(Arrays.asList(genre, genre2));
@@ -97,7 +94,7 @@ public class LibraryServiceTest {
 
         libraryService.getBooksByAuthorsName(TEST_AUTHOR_1);
 
-        verify(bookRepository).findBooksByAuthorId(author.getId());
+        verify(bookRepository).findAllByAuthorsId(author.getId());
     }
 
     @Test
@@ -113,7 +110,7 @@ public class LibraryServiceTest {
     public void addNewGenreWhenSuccessfulTest() throws Exception {
         when(genreRepository.findGenreByGenreName(TEST_GENRE_1)).thenReturn(null);
         Genre genre = new Genre(TEST_GENRE_1);
-        genre.setId(1L);
+        genre.setId("id");
         when(genreRepository.save(any())).thenReturn(genre);
 
         boolean result = libraryService.addNewGenre(genre);
@@ -133,8 +130,8 @@ public class LibraryServiceTest {
 
     @Test
     public void addNewBookTestWhenSuccessful() throws Exception {
-        List<String> titles = new ArrayList<>();
-        when(bookRepository.findAllTitles()).thenReturn(titles);
+        List<Book> books = new ArrayList<>();
+        when(bookRepository.findAll()).thenReturn(books);
 
         Genre genre = new Genre();
         when(genreRepository.findGenreByGenreName(TEST_GENRE_1)).thenReturn(genre);
@@ -143,7 +140,7 @@ public class LibraryServiceTest {
         when(authorRepository.findAuthorByName(TEST_AUTHOR_1)).thenReturn(author);
 
         Book book = new Book();
-        book.setId(1L);
+        book.setId("id");
         when(bookRepository.save(any())).thenReturn(book);
     }
 }

@@ -1,5 +1,5 @@
 export function postBook(authors, title, genre) {
-    fetch('/add', {
+    return fetch('/add', {
         method: 'post',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({

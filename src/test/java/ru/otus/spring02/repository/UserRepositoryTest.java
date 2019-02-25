@@ -1,21 +1,18 @@
 package ru.otus.spring02.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by хитрый жук on 19.01.2019.
- */
 @RunWith(SpringRunner.class)
-@DataJpaTest
+@DataMongoTest
 @DirtiesContext
 public class UserRepositoryTest {
 
@@ -25,14 +22,16 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private TestEntityManager entityManager;
+    @Before
+    public void init() {
+        userRepository.deleteAll();
+    }
 
     @Test
     public void addUserTest() throws Exception {
         User user = createTestUser(TEST_USER_1);
 
-        User testUser = entityManager.find(User.class, user.getId());
+        User testUser = userRepository.findById(user.getId()).orElse(null);
         assertThat(testUser)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("userName", TEST_USER_1);

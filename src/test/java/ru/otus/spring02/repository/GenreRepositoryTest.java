@@ -1,10 +1,10 @@
 package ru.otus.spring02.repository;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import ru.otus.spring02.model.Genre;
@@ -13,11 +13,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by хитрый жук on 28.12.2018.
- */
 @RunWith(SpringRunner.class)
-@DataJpaTest
+@DataMongoTest
 @DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
 public class GenreRepositoryTest {
 
@@ -27,8 +24,10 @@ public class GenreRepositoryTest {
     @Autowired
     private GenreRepository repository;
 
-    @Autowired
-    private TestEntityManager entityManager;
+    @Before
+    public void init() {
+        repository.deleteAll();
+    }
 
     @Test
     public void addGenreTest() {
@@ -99,7 +98,7 @@ public class GenreRepositoryTest {
     private Genre addTestGenre(String testName) {
         Genre genre = new Genre();
         genre.setGenreName(testName);
-        genre = entityManager.persist(genre);
+        genre = repository.save(genre);
         return genre;
     }
 

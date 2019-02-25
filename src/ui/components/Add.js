@@ -18,7 +18,12 @@ class AddBook extends React.Component {
         const { authors, title, genre } = this.state;
         postBook(authors, title, genre)
             .then(resp => {
-                this.setState({addResult: true});
+                this.setState({
+                    addResult: true,
+                    authors: ' ',
+                    title: ' ',
+                    genre: ' '
+                });
                 return resp.json();
             })
             .then(book => {
