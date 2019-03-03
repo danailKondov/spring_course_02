@@ -5,62 +5,66 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.otus.spring02.model.Book;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.spring02.service.LibraryService;
+import ru.otus.spring02.util.Mapper;
 
-import java.util.List;
 
-import static ru.otus.spring02.util.Mapper.mapBookListToDto;
-import static ru.otus.spring02.util.Mapper.mapBookToDto;
-import static ru.otus.spring02.util.Mapper.mapCommentListToDto;
+import javax.websocket.server.PathParam;
+
 import static ru.otus.spring02.util.Mapper.mapDtoToBook;
 
 @RestController
+@RequestMapping("api/books")
 public class BookController {
 
     @Autowired
     private LibraryService libraryService;
 
-    @GetMapping("/all")
-    public List<BookDto> showAllBooksOnIndexPage() {
-        return mapBookListToDto(libraryService.getAllBooks());
+    @GetMapping("/")
+    public Flux<BookDto> showAllBooksOnIndexPage() {
+        return libraryService.getAllBooks().map(Mapper::mapBookToDto);
     }
 
-    @GetMapping("/comment")
-    public List<CommentDto> showCommentsForBookId(@RequestParam(name = "id") String id) {
-        return mapCommentListToDto(libraryService.getAllFullComments(id));
+    @GetMapping("/{bookId}/comment")
+    public Flux<CommentDto> showCommentsForBookId(@PathVariable(name = "bookId") String bookId) {
+        return libraryService
+                .getAllComments(bookId)
+                .map(Mapper::mapCommentToDto);
     }
 
-    @PutMapping("/edit")
-    public BookDto showBookForEdit(@RequestParam(name = "id") String id) {
-        return mapBookToDto(libraryService.getBookById(id));
+    @GetMapping("/{bookId}")
+    public Mono<BookDto> showBookForEdit(@PathVariable("bookId") String bookId) {
+        return libraryService
+                .getBookById(bookId)
+                .map(Mapper::mapBookToDto);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<BookDto> addNewBook(@RequestBody BookDto bookDto) {
-        Book book = libraryService.addNewBook(mapDtoToBook(bookDto));
-        return book.getId() != null?
-                new ResponseEntity<>(mapBookToDto(book), HttpStatus.OK) :
-                new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PostMapping("/")
+    public Mono<BookDto> addNewBook(@RequestBody BookDto bookDto) {
+        return libraryService.addNewBook(mapDtoToBook(bookDto))
+                .map(Mapper::mapBookToDto)
+                .switchIfEmpty(Mono.error(new Exception()));
     }
 
-    @PutMapping("/update")
-    public BookDto updateBook(@RequestParam(name = "title") String title,
-                             @RequestParam(name = "id") String id) {
-        libraryService.updateBookTitleById(id, title);
-        return mapBookToDto(libraryService.getBookById(id));
+    @PutMapping("/")
+    public Mono<BookDto> updateBook(@RequestBody Mono<BookDto> bookDto) {
+        return libraryService
+                .updateBook(bookDto.map(Mapper::mapDtoToBook))
+                .map(Mapper::mapBookToDto);
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity deleteBook(@RequestParam(name = "id") String id) {
-        boolean result = libraryService.deleteBookById(id);
-        return result?
-                new ResponseEntity(HttpStatus.OK) :
-                new ResponseEntity(HttpStatus.NOT_FOUND);
+    @DeleteMapping("/{bookId}")
+    public Mono<ResponseEntity> deleteBook(@PathVariable("bookId") String bookId) {
+        return libraryService.deleteBookById(bookId)
+                .map(r -> new ResponseEntity(r == 0? HttpStatus.NOT_FOUND: HttpStatus.OK));
     }
 }

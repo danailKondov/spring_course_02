@@ -1,5 +1,5 @@
 export function postBook(authors, title, genre) {
-    return fetch('/add', {
+    return fetch('/api/books/', {
         method: 'post',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
@@ -11,17 +11,23 @@ export function postBook(authors, title, genre) {
 }
 
 export function getAllBooks() {
-    return fetch('/all')
+    return fetch('/api/books/')
 }
 
 export function deleteById(id) {
-    return fetch('/delete?id=' + id, {
+    return fetch('/api/books/' + id, {
         method: 'delete'
     })
 }
 
-export function updateTitleById(id, title) {
-    return fetch('/update?id=' + id + '&title=' + title, {
-        method: 'put'
+export function updateBook(book) {
+    return fetch('/api/books/', {
+        method: 'put',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(book)
     })
+}
+
+export function getComments(id) {
+    return fetch('/api/books/' + id + '/comment')
 }

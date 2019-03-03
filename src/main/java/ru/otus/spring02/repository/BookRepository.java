@@ -1,23 +1,24 @@
 package ru.otus.spring02.repository;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.lang.Nullable;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.spring02.model.Book;
 
-import java.util.List;
 
 @Repository
-public interface BookRepository extends MongoRepository<Book, String>, BookRepositoryCustom {
+public interface BookRepository extends ReactiveMongoRepository<Book, String> {
 
-    List<Book> findAll();
+    Flux<Book> findAll();
 
-    List<Book> findAllByAuthorsId(String authorId);
+    Flux<Book> findAllByAuthorsId(String authorId);
 
-    List<Book> findBooksByTitle(String title);
+    Flux<Book> findBooksByTitle(String title);
 
-    @Nullable
-    Book findBookById(String id);
+    Mono<Book> findBookById(String id);
 
-    int deleteBookById(String id);
+    Mono<Book> save(Mono<Book> book);
+
+    Mono<Long> deleteBookById(String id);
 }

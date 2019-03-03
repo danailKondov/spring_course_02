@@ -2,6 +2,10 @@ package ru.otus.spring02.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import ru.otus.spring02.exceptions.NoBookWithSuchIdLibraryException;
+import ru.otus.spring02.exceptions.NoCommentWithIdLibraryException;
 import ru.otus.spring02.model.BookInfo;
 import ru.otus.spring02.repository.AuthorRepository;
 import ru.otus.spring02.repository.BookRepository;
@@ -14,10 +18,6 @@ import ru.otus.spring02.model.Comment;
 import ru.otus.spring02.model.Genre;
 import ru.otus.spring02.model.User;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,7 +31,11 @@ public class LibraryServiceImpl implements LibraryService {
     private UserRepository userRepository;
 
     @Autowired
-    public LibraryServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository, GenreRepository genreRepository, CommentRepository commentRepository, UserRepository userRepository) {
+    public LibraryServiceImpl(BookRepository bookRepository,
+                              AuthorRepository authorRepository,
+                              GenreRepository genreRepository,
+                              CommentRepository commentRepository,
+                              UserRepository userRepository) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.genreRepository = genreRepository;
@@ -40,155 +44,144 @@ public class LibraryServiceImpl implements LibraryService {
     }
 
     @Override
-    public List<Book> getAllBooks() {
+    public Flux<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
     @Override
-    public List<String> getAllAuthorsNames() {
-        return authorRepository.findAll()
-                .stream()
-                .map(Author::getName)
-                .collect(Collectors.toList());
+    public Flux<String> getAllAuthorsNames() {
+        return authorRepository.findAll().map(Author::getName);
     }
 
     @Override
-    public List<String> getAllGenres() {
-        return genreRepository.findAll().stream()
-                .map(Genre::getGenreName)
-                .collect(Collectors.toList());
+    public Flux<String> getAllGenres() {
+        return genreRepository.findAll().map(Genre::getGenreName);
     }
 
     @Override
-    public List<Book> getBooksByAuthorsName(String name) {
-        Author author = authorRepository.findAuthorByName(name);
-        if (author == null) {
-            return Collections.emptyList();
-        }
-        return bookRepository.findAllByAuthorsId(author.getId());
+    public Flux<Book> getBooksByAuthorsName(String name) {
+        return bookRepository.findAll().filter(book -> {
+            if (book.getAuthors() != null) {
+                for (Author author : book.getAuthors()) {
+                    if (name.equals(author.getName())) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
     }
 
     @Override
-    public List<String> getAllComments(String bookId) {
+    public Flux<String> getAllCommentsTexts(String bookId) {
         return commentRepository.findCommentsByBook_Id(bookId)
-                .stream()
-                .map(Comment::getCommentText)
-                .collect(Collectors.toList());
+                .map(Comment::getCommentText);
     }
 
     @Override
-    public List<Comment> getAllFullComments(String id) {
-        return commentRepository.findAllById(id);
+    public Flux<Comment> getAllComments(String id) {
+        return commentRepository.findCommentsByBook_Id(id);
     }
 
     @Override
-    public Book getBookById(String id) {
+    public Mono<Book> getBookById(String id) {
         return bookRepository.findBookById(id);
     }
 
     @Override
-    public boolean addNewGenre(Genre genre) {
-        Genre checkGenre = genreRepository.findGenreByGenreName(genre.getGenreName());
-        if (checkGenre != null) {
-            return false;
-        }
-        genre = genreRepository.save(genre);
-        return genre.getId() != null;
+    public Mono<Genre> addNewGenre(final Genre genre) {
+        return genreRepository
+                .findGenreByGenreName(genre.getGenreName())
+                .switchIfEmpty(genreRepository.save(genre));
     }
 
     @Override
-    public Book addNewBook(Book book) {
+    public Mono<Book> addNewBook(Book book) {
 
-        Genre genre = genreRepository.findGenreByGenreName(book.getGenre().getGenreName());
-        if (genre == null) {
-            genre = genreRepository.save(book.getGenre());
-        }
-        book.setGenre(genre);
+        Mono<Genre> genre = this.addNewGenre(book.getGenre());
 
-        Set<Author> authorSet = new HashSet<>();
-        for (Author author : book.getAuthors()) {
-            Author checkAuthor = authorRepository.findAuthorByName(author.getName());
-            if (checkAuthor == null) {
-                author = authorRepository.save(author);
-                authorSet.add(author);
-            } else {
-                authorSet.add(checkAuthor);
-            }
-        }
-        book.setAuthors(authorSet);
+        Mono<Set<Author>> authors = Flux.fromIterable(book.getAuthors())
+                .flatMap(this::addNewAuthor)
+                .collect(Collectors.toSet());
 
-        return bookRepository.save(book);
+        return Mono.zip(authors, genre, (a, g) -> new Book(book.getTitle(), g, a))
+                .flatMap(bookRepository::save);
     }
 
     @Override
-    public boolean addNewAuthor(Author author) {
-        Author result = authorRepository.save(author);
-        return result.getId() != null;
+    public Mono<Author> addNewAuthor(Author author) {
+        return authorRepository
+                .findAuthorByName(author.getName())
+                .switchIfEmpty(authorRepository.save(author));
     }
 
     @Override
-    public boolean addComment(String bookId, String userName, String comment) {
-        Book book = bookRepository.findBookById(bookId);
-        if (book == null) {
-            return false;
-        }
+    public Mono<Comment> addComment(final String bookId, final String userName, final String comment) {
 
-        User user = userRepository.findUserByUserName(userName);
-        if (user == null) {
-            user = userRepository.save(new User(userName));
-        }
+        Mono<BookInfo> bookInfoMono = bookRepository
+                .findBookById(bookId)
+                .map(BookInfo::new)
+                .switchIfEmpty(Mono.error(new NoBookWithSuchIdLibraryException(bookId)));
 
-        BookInfo bookInfo = new BookInfo();
-        bookInfo.setId(bookId);
-        bookInfo.setTitle(book.getTitle());
+        Mono<User> userMono = userRepository
+                .findUserByUserName(userName)
+                .switchIfEmpty(userRepository.save(new User(userName)));
 
-        Comment com = commentRepository.save(new Comment(bookInfo, user, comment));
-        book.getComments().add(com);
-        bookRepository.save(book);
-        return true;
+        return Mono.zip(bookInfoMono, userMono, (book, user) -> new Comment(book, user, comment))
+                .flatMap(commentRepository::save);
     }
 
     @Override
-    public boolean updateBookTitleById(String id, String newTitle) {
-        Long result = bookRepository.updateBookTitleById(id, newTitle);
-        return result != null && result > 0;
+    public Mono<Book> updateBookTitleById(String id, String newTitle) {
+        return bookRepository.findById(id)
+                .map(book -> {
+                    book.setTitle(newTitle);
+                    return book;
+                })
+                .flatMap(bookRepository::save)
+                .switchIfEmpty(Mono.error(new NoBookWithSuchIdLibraryException(id)));
     }
 
     @Override
-    public boolean updateComment(Comment comment) {
-        Optional<Comment> optionalComment = commentRepository.findById(comment.getId());
-        if (!optionalComment.isPresent()) {
-            return false;
-        }
-        Comment commentToUpdate = optionalComment.get();
-        commentToUpdate.setCommentDate(comment.getCommentDate());
-        commentToUpdate.setCommentText(comment.getCommentText());
-        commentRepository.save(commentToUpdate);
-        return true;
+    public Mono<Book> updateBook(Mono<Book> bookMono) {
+        return bookRepository.save(bookMono);
     }
 
     @Override
-    public boolean deleteBookById(String id) {
-        int result = bookRepository.deleteBookById(id);
-        return result > 0;
+    public Mono<Comment> updateComment(Mono<Comment> comment) {
+        return commentRepository.save(comment);
     }
 
     @Override
-    public boolean deleteAuthorById(String id) {
-        int result = authorRepository.deleteAuthorById(id);
-        return result > 0;
+    public Mono<Comment> updateComment(String id, String text) {
+        return commentRepository.findById(id)
+                .flatMap(comm -> {
+                    comm.setCommentText(text);
+                    return Mono.just(comm);
+                })
+                .flatMap(commentRepository::save)
+                .switchIfEmpty(Mono.error(new NoCommentWithIdLibraryException(id)));
     }
 
     @Override
-    public boolean deleteGenre(String genreName) {
-        int result = genreRepository.deleteGenreByGenreName(genreName);
-        return result > 0;
+    public Mono<Long> deleteBookById(String id) {
+        commentRepository.deleteCommentByBook_Id(id);
+        return bookRepository.deleteBookById(id);
     }
 
     @Override
-    public boolean deleteCommentById(String id) {
-        int result = commentRepository.deleteCommentById(id);
-        return result > 0;
+    public Mono<Long> deleteAuthorById(String id) {
+        return authorRepository.deleteAuthorById(id);
+    }
+
+    @Override
+    public Mono<Long> deleteGenre(String genreName) {
+        return genreRepository.deleteGenreByGenreName(genreName);
+    }
+
+    @Override
+    public Mono<Long> deleteCommentById(String id) {
+        return commentRepository.deleteCommentById(id);
     }
 
     @Override

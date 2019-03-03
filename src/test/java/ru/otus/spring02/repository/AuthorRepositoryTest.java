@@ -5,19 +5,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.otus.spring02.model.Author;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 @RunWith(SpringRunner.class)
 @DataMongoTest
-@DirtiesContext // в т.ч. in-memory база пересоздается каждый тест
 public class AuthorRepositoryTest {
 
     private static final String TEST_NAME_1 = "testName";
@@ -28,93 +29,104 @@ public class AuthorRepositoryTest {
 
     @Before
     public void init() {
-        repository.deleteAll();
+        repository.deleteAll().block();
     }
 
     @Test
     public void addNewAuthorTest() {
         Author author = new Author();
         author.setName(TEST_NAME_1);
-        repository.save(author);
+        Mono<Author> authorMono = repository.save(author);
+        assertThat(authorMono.block()).isNotNull();
 
-        List<String> authors = getAllAuthorsNames();
-
-        assertThat(authors)
-                .isNotEmpty()
-                .hasSize(1)
-                .contains(TEST_NAME_1);
-    }
-
-    private List<String> getAllAuthorsNames() {
-        return repository.findAll()
-                .stream()
-                .map(Author::getName)
-                .collect(Collectors.toList());
+        Flux<Author> authors = repository.findAll();
+        StepVerifier
+                .create(authors)
+                .assertNext(aut -> {
+                    assertThat(aut.getId()).isNotNull();
+                    assertThat(aut.getName()).isEqualTo(TEST_NAME_1);
+                })
+                .thenAwait(Duration.ofSeconds(5))
+                .expectComplete()
+                .verify();
     }
 
     @Test
-    public void getAllAuthorsNamesTest() {
-        List<String> authors = getAllAuthorsNames();
-        assertThat(authors).isEmpty();
+    public void getAllAuthorsTest() {
 
-        addTestAuthor(TEST_NAME_1);
-        addTestAuthor(TEST_NAME_2);
+        Author author1 = addTestAuthor(TEST_NAME_1).block();
+        Author author2 = addTestAuthor(TEST_NAME_2).block();
 
-        authors = getAllAuthorsNames();
-
-        assertThat(authors)
-                .hasSize(2)
-                .contains(TEST_NAME_1, TEST_NAME_2);
+        Flux<Author> authorFlux = repository.findAll();
+        StepVerifier
+                .create(authorFlux)
+                .expectNext(author1, author2)
+                .thenAwait(Duration.ofSeconds(5))
+                .verifyComplete();
     }
 
     @Test
     public void getAuthorByNameTest() {
-        addTestAuthor(TEST_NAME_1);
-        Author author = repository.findAuthorByName(TEST_NAME_1);
-        assertThat(author.getName()).isEqualTo(TEST_NAME_1);
+        Mono<Author> authorMono = addTestAuthor(TEST_NAME_1);
+        StepVerifier
+                .create(authorMono.map(Author::getName))
+                .expectNext(TEST_NAME_1).verifyComplete();
+
+        authorMono = repository.findAuthorByName(TEST_NAME_1);
+        StepVerifier
+                .create(authorMono.map(Author::getName))
+                .expectNext(TEST_NAME_1).verifyComplete();
     }
 
     @Test
     public void deleteAuthorTest() {
-        addTestAuthor(TEST_NAME_1);
-        addTestAuthor(TEST_NAME_2);
+        Author author1 = addTestAuthor(TEST_NAME_1).block();
+        Author author2 = addTestAuthor(TEST_NAME_2).block();
 
-        List<String> authors = getAllAuthorsNames();
-        assertThat(authors)
-                .hasSize(2)
-                .contains(TEST_NAME_1, TEST_NAME_2);
+        Flux<Author> authorFlux = repository.findAll();
+        StepVerifier
+                .create(authorFlux)
+                .expectNext(author1, author2)
+                .thenAwait(Duration.ofSeconds(5))
+                .verifyComplete();
 
-        Author author = repository.findAuthorByName(TEST_NAME_1);
-        int result = repository.deleteAuthorById(author.getId());
+        Mono<Long> result = repository.deleteAuthorById(author1.getId());
+        assertThat(result.block() > 0);
 
-        authors = getAllAuthorsNames();
-        assertThat(result > 0).isTrue();
-        assertThat(authors)
-                .hasSize(1)
-                .contains(TEST_NAME_2)
-                .doesNotContain(TEST_NAME_1);
+        Flux<Author> authors = repository.findAll();
+        StepVerifier
+                .create(authors)
+                .thenAwait(Duration.ofSeconds(5))
+                .assertNext(aut -> {
+                    assertThat(aut.getId()).isNotNull();
+                    assertThat(aut.getName()).isEqualTo(TEST_NAME_2);
+                })
+                .thenAwait(Duration.ofSeconds(5))
+                .expectComplete()
+                .verify();
     }
 
     @Test
     public void deleteAllTest() {
-        addTestAuthor(TEST_NAME_1);
-        addTestAuthor(TEST_NAME_2);
+        Author author1 = addTestAuthor(TEST_NAME_1).block();
+        Author author2 = addTestAuthor(TEST_NAME_2).block();
 
-        List<String> authors = getAllAuthorsNames();
-        assertThat(authors)
-                .hasSize(2)
-                .contains(TEST_NAME_1, TEST_NAME_2);
+        Flux<Author> authorFlux = repository.findAll();
+        StepVerifier
+                .create(authorFlux)
+                .expectNext(author1, author2)
+                .verifyComplete();
 
-        repository.deleteAll();
+        repository.deleteAll().block();
 
-        authors = getAllAuthorsNames();
+        List<Author> authors = repository.findAll().collectList().block();
         assertThat(authors).isEmpty();
     }
 
-    private void addTestAuthor(String testName) {
+    private Mono<Author> addTestAuthor(String testName) {
         Author author = new Author();
         author.setName(testName);
-        repository.save(author);
+        return repository.save(author);
     }
 
 }

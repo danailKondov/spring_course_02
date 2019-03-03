@@ -35,9 +35,9 @@ class BookTable extends React.Component {
             .catch(error => console.error('Error:', error));
     };
 
-    handleEdit = (id) => {
+    handleComments = (id) => {
         this.props.history.push({
-            pathname: '/edit',
+            pathname: '/comm',
             state: { id }
         })
     };
@@ -55,30 +55,30 @@ class BookTable extends React.Component {
                 </thead>
                 <tbody id="tablebody">
                     {
-                        books.map(({id, title, authors, genre, comments}, i) => (
+                        books.map((book, i) => (
                             <tr key={"tableRow" + i}>
-                                <td>{id}</td>
-                                <td>{title}</td>
-                                <td>{authors}</td>
-                                <td>{genre}</td>
+                                <td>{book.id}</td>
+                                <td>{book.title}</td>
+                                <td>{book.authors}</td>
+                                <td>{book.genre}</td>
                                 <td>
                                     <button
                                         className='btn btn-default'
-                                        onClick={() => this.handleEdit(id)}>
+                                        onClick={() => this.props.onEditView(book)}>
                                         Edit
                                     </button>
                                 </td>
                                 <td>
                                     <button
                                         className='btn btn-default'
-                                        onClick={() => this.handleDelete(id)}>
+                                        onClick={() => this.handleDelete(book.id)}>
                                         Delete
                                     </button>
                                 </td>
                                 <td>
                                     <button
                                         className='btn btn-default'
-                                        onClick={() => this.props.onCommentView(comments)}>
+                                        onClick={() => this.handleComments(book.id)}>
                                         View comments
                                     </button>
                                 </td>
@@ -94,7 +94,7 @@ class BookTable extends React.Component {
 BookTable.propTypes = {
     books: PropTypes.array.isRequired,
     onDelete: PropTypes.func.isRequired,
-    onCommentView: PropTypes.func.isRequired
+    onEditView: PropTypes.func.isRequired
 };
 
 export default withRouter(BookTable);

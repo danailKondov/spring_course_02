@@ -1,33 +1,35 @@
 package ru.otus.spring02.service;
 
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.spring02.model.Author;
 import ru.otus.spring02.model.Book;
 import ru.otus.spring02.model.Comment;
 import ru.otus.spring02.model.Genre;
 
-import java.util.List;
-
 public interface LibraryService {
 
-    List<Book> getAllBooks();
-    List<String> getAllAuthorsNames();
-    List<String> getAllGenres();
-    List<Book> getBooksByAuthorsName(String name);
-    List<String> getAllComments(String bookId);
-    List<Comment> getAllFullComments(String id);
-    Book getBookById(String id);
+    Flux<Book> getAllBooks();
+    Flux<String> getAllAuthorsNames();
+    Flux<String> getAllGenres();
+    Flux<Book> getBooksByAuthorsName(String name);
+    Flux<String> getAllCommentsTexts(String bookId);
+    Flux<Comment> getAllComments(String id);
+    Mono<Book> getBookById(String id);
 
-    boolean addNewGenre(Genre genre);
-    Book addNewBook(Book book);
-    boolean addNewAuthor(Author author);
-    boolean addComment(String bookId, String userName, String comment);
+    Mono<Genre> addNewGenre(Genre genre);
+    Mono<Book> addNewBook(Book book);
+    Mono<Author> addNewAuthor(Author author);
+    Mono<Comment> addComment(String bookId, String userName, String comment);
 
-    boolean updateBookTitleById(String id, String newTitle);
-    boolean updateComment(Comment comment);
+    Mono<Book> updateBookTitleById(String id, String newTitle);
+    Mono<Book> updateBook(Mono<Book> bookMono);
+    Mono<Comment> updateComment(Mono<Comment> comment);
+    Mono<Comment> updateComment(String id, String newComment);
 
-    boolean deleteBookById(String id);
-    boolean deleteAuthorById(String id);
-    boolean deleteGenre(String genreName);
-    boolean deleteCommentById(String id);
+    Mono<Long> deleteBookById(String id);
+    Mono<Long> deleteAuthorById(String id);
+    Mono<Long> deleteGenre(String genreName);
+    Mono<Long> deleteCommentById(String id);
     void deleteAll();
 }

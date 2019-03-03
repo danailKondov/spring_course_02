@@ -1,5 +1,6 @@
 package ru.otus.spring02.model;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -10,6 +11,7 @@ import java.util.Date;
 
 @Getter
 @Setter
+@EqualsAndHashCode(exclude = {"book", "user"})
 @Document(collection = "book_comments")
 public class Comment {
 
@@ -19,7 +21,6 @@ public class Comment {
     @DBRef
     private User user;
 
-    @DBRef
     private BookInfo book;
 
     private String commentText;

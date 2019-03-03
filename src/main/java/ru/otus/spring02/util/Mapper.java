@@ -26,12 +26,14 @@ public class Mapper {
     public static BookDto mapBookToDto(Book book) {
         BookDto result = new BookDto();
         result.setId(book.getId());
-        result.setAuthors(book
-                .getAuthors()
-                .stream()
-                .map(Author::getName)
-                .reduce((x, y) -> x + ", " + y)
-                .orElse("no author"));
+        if (book.getAuthors() != null) {
+            result.setAuthors(book
+                    .getAuthors()
+                    .stream()
+                    .map(Author::getName)
+                    .reduce((x, y) -> x + ", " + y)
+                    .orElse("no author"));
+        }
         result.setTitle(book.getTitle());
         Genre genre = book.getGenre();
         if (genre != null) {
@@ -50,12 +52,12 @@ public class Mapper {
         return result;
     }
 
-    public static List<BookDto> mapBookListToDto(List<Book> books) {
-        return books
-                .stream()
-                .map(Mapper::mapBookToDto)
-                .collect(Collectors.toList());
-    }
+//    public static List<BookDto> mapBookListToDto(List<Book> books) {
+//        return books
+//                .stream()
+//                .map(Mapper::mapBookToDto)
+//                .collect(Collectors.toList());
+//    }
 
     public static CommentDto mapCommentToDto(Comment comment) {
         CommentDto result = new CommentDto();
@@ -67,12 +69,12 @@ public class Mapper {
         return result;
     }
 
-    public static List<CommentDto> mapCommentListToDto(List<Comment> comments) {
-        return comments
-                .stream()
-                .map(Mapper::mapCommentToDto)
-                .collect(Collectors.toList());
-    }
+//    public static List<CommentDto> mapCommentListToDto(List<Comment> comments) {
+//        return comments
+//                .stream()
+//                .map(Mapper::mapCommentToDto)
+//                .collect(Collectors.toList());
+//    }
 
     private static Set<Author> mapAuthors(String authors) {
         String[] authorsArr = authors.split(",");

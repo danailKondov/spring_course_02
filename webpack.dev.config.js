@@ -17,7 +17,7 @@ module.exports = {
         host: 'localhost',
         open: true,
         before: (app) => {
-            app.get('/all', (req, res) => res.send([
+            app.get('/api/books/', (req, res) => res.send([
                 {
                     id: '1',
                     title: 'Привяу',
@@ -62,11 +62,37 @@ module.exports = {
                         date: '16-02-2019'
                     }]}
             ]));
-            app.post('/add', (req, res) => res.send(
+            app.post('/api/books/', (req, res) => res.send(
                 {id: '3', title: 'testTitle3', authors: 'testAut3', genre: 'testGen3', comments: []}
             ));
-            app.delete('/delete', (req, res) => res.sendStatus(200));
-            app.put('/update', (req, res) => res.sendStatus(200))
+            app.delete('/api/books/1', (req, res) => res.sendStatus(200));
+            app.put('/api/books/', (req, res) => res.send(
+                {
+                    id: '2',
+                    title: 'Test update',
+                    authors: 'testAut update',
+                    genre: 'testGen update',
+                    comments: [{
+                        title: 'title update',
+                        user: 'user update',
+                        text: 'text update',
+                        date: '16-02-2019'
+                    }]}
+            ));
+            app.get('/api/books/1/comment', (req, res) => res.send([
+                {
+                    title: 'Troll',
+                    user: 'Boris',
+                    text: 'I did not read, but i think it is a bad book',
+                    date: '02-02-2019'
+                },
+                {
+                    title: 'Troll2',
+                    user: 'Boris2',
+                    text: 'I did not read, but i think it is a bad book',
+                    date: '03-02-2019'
+                }
+            ]));
         }
     },
 

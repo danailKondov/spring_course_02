@@ -1,15 +1,15 @@
 package ru.otus.spring02.repository;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.spring02.model.Genre;
 
-import java.util.List;
-
 @Repository
-public interface GenreRepository extends MongoRepository<Genre, String> {
+public interface GenreRepository extends ReactiveMongoRepository<Genre, String> {
 
-    List<Genre> findAll();
-    Genre findGenreByGenreName(String name);
-    int deleteGenreByGenreName(String name);
+    Flux<Genre> findAll();
+    Mono<Genre> findGenreByGenreName(String name);
+    Mono<Long> deleteGenreByGenreName(String name);
 }

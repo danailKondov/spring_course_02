@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"books"})
+@EqualsAndHashCode
 @Document(collection = "authors")
 public class Author {
 

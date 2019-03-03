@@ -4,6 +4,7 @@ import {AddBook} from './Add'
 import Modal from 'react-modal';
 import './library.css'
 import {getAllBooks} from "./Service";
+import EditBook from "./Edit";
 
 Modal.setAppElement('#root');
 
@@ -12,8 +13,8 @@ export default class App extends React.Component {
     state = {
         books: [],
         isLoading: false,
-        isShowComments: false,
-        comments: []
+        isShowEdit: false,
+        bookToEdit: {}
     };
 
     componentDidMount() {
@@ -38,20 +39,26 @@ export default class App extends React.Component {
         this.setState({books: updatedBooks});
     };
 
-    handleCommentView = (comments) => {
-        this.setState({comments, isShowComments: true});
+    handleEditView = (bookToEdit) => {
+        this.setState({bookToEdit: bookToEdit, isShowEdit: true});
     };
 
-    closeCommentView = () => {
-        this.setState({isShowComments: false});
+    closeEditView = () => {
+        this.setState({isShowEdit: false});
+    };
+
+    handleUpdateBook = (updatedBook) => {
+        const filteredBooks = this.state.books.filter(book => book.id !== updatedBook.id); // нет id в приходящей буке?
+        const updBooks = [updatedBook, ...filteredBooks];
+        this.setState({books: updBooks})
     };
 
     render() {
-        const { books, isLoading, isShowComments, comments } = this.state;
+        const { books, isLoading, isShowEdit, bookToEdit } = this.state;
 
         return (
             <React.Fragment>
-                <div id="tablediv">
+                <div className="component-box">
                     <h1>Library</h1>
                     {
                         isLoading ?
@@ -63,7 +70,7 @@ export default class App extends React.Component {
                         <BookTable
                             books={books}
                             onDelete={this.handleDeleteBook}
-                            onCommentView={this.handleCommentView}
+                            onEditView={this.handleEditView}
                         />
                         : null
                     }
@@ -72,39 +79,21 @@ export default class App extends React.Component {
                     onAdd={this.handleAddBook}
                 />
                 <Modal
-                    isOpen={isShowComments}
+                    isOpen={isShowEdit}
                     shouldCloseOnOverlayClick={true}
                     shouldCloseOnEsc={true}
-                    onRequestClose={this.closeCommentView}
+                    onRequestClose={this.closeEditView}
                     className="Modal"
                     overlayClassName="Overlay"
                     contentLabel="ModalLabel"
                 >
-                    <h1>Comments</h1>
-                    { comments ?
-                        comments.map((comment, i) => (
-                            <div className="comment" key={"comment" + i}>
-                                <table>
-                                    <tr>
-                                        <th>Date: </th><th>{comment.date}</th>
-                                    </tr>
-                                    <tr>
-                                        <th>User: </th><th>{comment.user}</th>
-                                    </tr>
-                                    <tr>
-                                        <th>Title: </th><th>{comment.title}</th>
-                                    </tr>
-                                    <tr>
-                                        <th>Text: </th><th>{comment.text}</th>
-                                    </tr>
-                                </table>
-                            </div>
-                        ))
-                        : <h3>No comments</h3>
-                    }
+                    <EditBook
+                        bookToEdit={bookToEdit}
+                        onUpdate={this.handleUpdateBook}
+                    />
                     <button
                         className='btn btn-default'
-                        onClick={this.closeCommentView}
+                        onClick={this.closeEditView}
                     >
                         Close
                     </button>

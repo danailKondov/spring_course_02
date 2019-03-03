@@ -1,18 +1,22 @@
 package ru.otus.spring02.repository;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.spring02.model.Comment;
-
-import java.util.List;
 
 
 @Repository
-public interface CommentRepository extends MongoRepository<Comment, String> {
+public interface CommentRepository extends ReactiveMongoRepository<Comment, String> {
 
-    List<Comment> findAllById(String id);
+    Flux<Comment> findAllById(String id);
 
-    List<Comment> findCommentsByBook_Id(String id);
+    Flux<Comment> findCommentsByBook_Id(String id);
 
-    int deleteCommentById(String id);
+    Mono<Long> deleteCommentById(String id);
+
+    Mono<Long> deleteCommentByBook_Id(String bookId);
+
+    Mono<Comment> save(Mono<Comment> comment);
 }

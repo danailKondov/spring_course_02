@@ -11,4 +11,9 @@ public class BookInfo {
 
     private String id;
     private String title;
+
+    public BookInfo(Book book) {
+        this.id = book.getId();
+        this.title = book.getTitle();
+    }
 }
