@@ -27,7 +27,7 @@ public class BookControllerTest {
     @Test
     public void showAllBooksOnIndexPageTest() throws Exception {
         mvc.perform(MockMvcRequestBuilders
-                .get("/all"))
+                .get("/api/books/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
 

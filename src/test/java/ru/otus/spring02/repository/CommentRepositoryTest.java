@@ -66,7 +66,7 @@ public class CommentRepositoryTest {
         commentRepository.save(comment1);
         commentRepository.save(comment2);
 
-        List<String> comments = commentRepository.findCommentsByBookId(book.getId());
+        List<String> comments = commentRepository.findCommentsTextByBookId(book.getId());
 
         assertThat(comments)
                 .isNotEmpty()

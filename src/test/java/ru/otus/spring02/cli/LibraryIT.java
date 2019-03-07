@@ -194,7 +194,7 @@ public class LibraryIT {
 
         shell.evaluate(() -> "add-comm " + id + " " + TEST_USER + " " + TEST_TEXT_1);
 
-        List<String> result = commentRepository.findCommentsByBookId(id);
+        List<String> result = commentRepository.findCommentsTextByBookId(id);
         assertThat(result)
                 .isNotNull()
                 .hasSize(1)

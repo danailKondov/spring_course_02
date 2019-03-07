@@ -8,16 +8,13 @@ import ru.otus.spring02.model.Comment;
 
 import java.util.List;
 
-/**
- * Created by хитрый жук on 19.01.2019.
- */
 @Repository
 public interface CommentRepository extends CrudRepository<Comment, Long> {
 
     @Query("SELECT c.commentText FROM Comment c WHERE c.book.id = :bookId")
-    List<String> findCommentsByBookId(@Param(value = "bookId") Long bookId);
+    List<String> findCommentsTextByBookId(@Param(value = "bookId") Long bookId);
 
-    List<Comment> findAllById(Long id);
+    List<Comment> findCommentsByBook_Id(Long id);
 
     int deleteCommentById(Long id);
 }
