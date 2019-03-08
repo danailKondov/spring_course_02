@@ -9,9 +9,11 @@ INSERT INTO authors (author_name) VALUES ('Л.Толстой');
 INSERT INTO authors (author_name) VALUES ('Ф.Достоевский');
 INSERT INTO authors (author_name) VALUES ('В.Пелевин');
 
-INSERT INTO users (user_name) VALUES ('UsualTroll');
-INSERT INTO users (user_name) VALUES ('FatTroll');
-INSERT INTO users (user_name) VALUES ('ThinTroll');
+INSERT INTO users (user_name, password, role) VALUES ('UsualTroll', '$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS', 'ROLE_USER');
+INSERT INTO users (user_name, password, role) VALUES ('FatTroll', '$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS', 'ROLE_USER');
+INSERT INTO users (user_name, password, role) VALUES ('ThinTroll', '$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS', 'ROLE_USER');
+INSERT INTO users (user_name, password, role) VALUES ('test', 'test', 'ROLE_USER');
+INSERT INTO users (user_name, password, role) VALUES ('test2', 'test2', 'ROLE_ADMIN');
 
 INSERT INTO books (title, genre_id)
 VALUES ('Восточный экспресс', (SELECT id FROM genres WHERE genre_name = 'детектив'));

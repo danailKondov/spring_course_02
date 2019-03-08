@@ -20,9 +20,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by хитрый жук on 15.01.2019.
- */
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext
@@ -34,6 +31,8 @@ public class CommentRepositoryTest {
     private static final String TEST_TITLE = "testName";
     private static final String TEST_AUTHOR = "testAuthor";
     private static final String TEST_GENRE = "testGenre";
+    private static final String TEST_ROLE = "ROLE_USER";
+    private static final String TEST_PASS = "$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS"; //password
 
     @Autowired
     private CommentRepository commentRepository;
@@ -47,7 +46,7 @@ public class CommentRepositoryTest {
     @Test
     public void addCommentTest() {
         Book book = addTestBookToDb(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        User user = userRepository.save(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
 
         commentRepository.save(comment);
@@ -59,7 +58,7 @@ public class CommentRepositoryTest {
     @Test
     public void getCommentByBookIdTest() {
         Book book = addTestBookToDb(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        User user = userRepository.save(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
         Comment comment1 = new Comment(book, user, TEST_TEXT_1);
         Comment comment2 = new Comment(book, user, TEST_TEXT_2);
 
@@ -77,7 +76,7 @@ public class CommentRepositoryTest {
     @Test
     public void deleteCommentByIdWhenSuccessfulTest() {
         Book book = addTestBookToDb(TEST_TITLE, TEST_AUTHOR, TEST_GENRE);
-        User user = userRepository.save(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
         commentRepository.save(comment);
         Long id = comment.getId();

@@ -72,8 +72,6 @@ View на Thymeleaf, classic Controllers.
 
 ## В CRUD Web-приложение добавить механизм аутентификации
 
-В существующее CRUD-приложение добавить мехнизм Form-based аутентификации.
-
-UsersServices реализовать самостоятельно. 
+В существующее CRUD-приложение добавлен Spring Security и механизм Form-based аутентификации.
 
 решение: см. _add_form_based_auth_

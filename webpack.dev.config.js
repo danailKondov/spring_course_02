@@ -66,7 +66,8 @@ module.exports = {
                 {id: '3', title: 'testTitle3', authors: 'testAut3', genre: 'testGen3', comments: []}
             ));
             app.delete('/api/books/1', (req, res) => res.sendStatus(200));
-            app.put('/update', (req, res) => res.sendStatus(200))
+            app.put('/update', (req, res) => res.sendStatus(200));
+            app.post('/perform_login', (req, res) => res.sendStatus(200))
         }
     },
 

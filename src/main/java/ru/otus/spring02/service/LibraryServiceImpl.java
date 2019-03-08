@@ -136,7 +136,12 @@ public class LibraryServiceImpl implements LibraryService {
 
         User user = userRepository.findUserByUserName(userName);
         if (user == null) {
-            user = userRepository.save(new User(userName));
+            user = userRepository.save(
+                    new User(
+                            userName,
+                            "$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS",
+                            "ROLE_USER")
+            );
         }
 
         Comment com = commentRepository.save(new Comment(book, user, comment));
