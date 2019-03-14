@@ -17,7 +17,7 @@ module.exports = {
         host: 'localhost',
         open: true,
         before: (app) => {
-            app.get('/all', (req, res) => res.send([
+            app.get('/api/books/', (req, res) => res.send([
                 {
                     id: '1',
                     title: 'Привяу',
@@ -62,11 +62,12 @@ module.exports = {
                         date: '16-02-2019'
                     }]}
             ]));
-            app.post('/add', (req, res) => res.send(
+            app.post('/api/books/', (req, res) => res.send(
                 {id: '3', title: 'testTitle3', authors: 'testAut3', genre: 'testGen3', comments: []}
             ));
-            app.delete('/delete', (req, res) => res.sendStatus(200));
-            app.put('/update', (req, res) => res.sendStatus(200))
+            app.delete('/api/books/1', (req, res) => res.sendStatus(200));
+            app.put('/update', (req, res) => res.sendStatus(200));
+            app.post('/perform_login', (req, res) => res.sendStatus(200))
         }
     },
 

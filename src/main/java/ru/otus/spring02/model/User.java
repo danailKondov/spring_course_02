@@ -1,5 +1,6 @@
 package ru.otus.spring02.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,13 +26,26 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_name")
+    @Column(name = "user_name", nullable = false, unique = true)
     private String userName;
+
+    @JsonIgnore
+    @Column(name = "password", nullable = false)
+    private String passwordHash;
+
+    @Column(name = "role", nullable = false)
+    private String role;
 
     @OneToMany(mappedBy = "user")
     private Set<Comment> comments = new HashSet<>();
 
     public User(String userName) {
         this.userName = userName;
+    }
+
+    public User(String userName, String passwordHash, String role) {
+        this.userName = userName;
+        this.passwordHash = passwordHash;
+        this.role = role;
     }
 }

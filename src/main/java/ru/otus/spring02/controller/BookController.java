@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.spring02.model.Book;
@@ -21,27 +23,28 @@ import static ru.otus.spring02.util.Mapper.mapCommentListToDto;
 import static ru.otus.spring02.util.Mapper.mapDtoToBook;
 
 @RestController
+@RequestMapping("api/books")
 public class BookController {
 
     @Autowired
     private LibraryService libraryService;
 
-    @GetMapping("/all")
+    @GetMapping("/")
     public List<BookDto> showAllBooksOnIndexPage() {
         return mapBookListToDto(libraryService.getAllBooks());
     }
 
-    @GetMapping("/comment")
-    public List<CommentDto> showCommentsForBookId(@RequestParam(name = "id") Long id) {
-        return mapCommentListToDto(libraryService.getAllFullComments(id));
+    @GetMapping("/{bookId}/comment")
+    public List<CommentDto> showCommentsForBookId(@PathVariable("bookId") Long bookId) {
+        return mapCommentListToDto(libraryService.getAllFullComments(bookId));
     }
 
-    @PutMapping("/edit")
-    public BookDto showBookForEdit(@RequestParam(name = "id") Long id) {
-        return mapBookToDto(libraryService.getBookById(id));
+    @PutMapping("/{bookId}")
+    public BookDto showBookForEdit(@PathVariable("bookId") Long bookId) {
+        return mapBookToDto(libraryService.getBookById(bookId));
     }
 
-    @PostMapping("/add")
+    @PostMapping("/")
     public ResponseEntity<BookDto> addNewBook(@RequestBody BookDto bookDto) {
         Book book = libraryService.addNewBook(mapDtoToBook(bookDto));
         return book.getId() != null?
@@ -49,16 +52,16 @@ public class BookController {
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PutMapping("/update")
+    @PutMapping("/")
     public BookDto updateBook(@RequestParam(name = "title") String title,
                              @RequestParam(name = "id") Long id) {
         libraryService.updateBookTitleById(id, title);
         return mapBookToDto(libraryService.getBookById(id));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity deleteBook(@RequestParam(name = "id") Long id) {
-        boolean result = libraryService.deleteBookById(id);
+    @DeleteMapping("/{bookId}")
+    public ResponseEntity deleteBook(@PathVariable("bookId") Long bookId) {
+        boolean result = libraryService.deleteBookById(bookId);
         return result?
                 new ResponseEntity(HttpStatus.OK) :
                 new ResponseEntity(HttpStatus.NOT_FOUND);

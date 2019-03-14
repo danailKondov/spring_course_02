@@ -8,6 +8,7 @@ class BookTable extends React.Component {
 
     state = {
         books: [],
+        isAuthenticated: false
     };
 
     static defaultProps = {
@@ -16,8 +17,10 @@ class BookTable extends React.Component {
 
     static getDerivedStateFromProps(props, state) {
         let books = [...props.books];
+        let isAuthenticated = props.isAuthenticated;
         return {
-            books: books,
+            books,
+            isAuthenticated
         }
     }
 
@@ -44,7 +47,7 @@ class BookTable extends React.Component {
 
     render() {
 
-        let books = this.state.books;
+        const {books, isAuthenticated} = this.state;
 
         return(
             <table className="table" id="bookstable">
@@ -64,14 +67,17 @@ class BookTable extends React.Component {
                                 <td>
                                     <button
                                         className='btn btn-default'
-                                        onClick={() => this.handleEdit(id)}>
+                                        onClick={() => this.handleEdit(id)}
+                                        disabled={!isAuthenticated}
+                                    >
                                         Edit
                                     </button>
                                 </td>
                                 <td>
                                     <button
                                         className='btn btn-default'
-                                        onClick={() => this.handleDelete(id)}>
+                                        onClick={() => this.handleDelete(id)}
+                                        disabled={!isAuthenticated}>
                                         Delete
                                     </button>
                                 </td>
@@ -94,7 +100,8 @@ class BookTable extends React.Component {
 BookTable.propTypes = {
     books: PropTypes.array.isRequired,
     onDelete: PropTypes.func.isRequired,
-    onCommentView: PropTypes.func.isRequired
+    onCommentView: PropTypes.func.isRequired,
+    isAuthenticated: PropTypes.bool.isRequired
 };
 
 export default withRouter(BookTable);

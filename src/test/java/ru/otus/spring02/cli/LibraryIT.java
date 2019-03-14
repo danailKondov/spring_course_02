@@ -27,9 +27,6 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-/**
- * Created by хитрый жук on 28.12.2018.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Transactional
@@ -44,6 +41,8 @@ public class LibraryIT {
     private static final String TEST_USER = "testUser";
     private static final String TEST_TEXT_1 = "testText1";
     private static final String TEST_TEXT_2 = "testText2";
+    private static final String TEST_ROLE = "ROLE_USER";
+    private static final String TEST_PASS = "$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS"; //password
 
     @Autowired
     private Shell shell;
@@ -130,7 +129,7 @@ public class LibraryIT {
     @Test
     public void getAllCommentsForBookTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        User user = userRepository.save(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
         Comment comment1 = new Comment(book, user, TEST_TEXT_1);
         Comment comment2 = new Comment(book, user, TEST_TEXT_2);
 
@@ -194,7 +193,7 @@ public class LibraryIT {
 
         shell.evaluate(() -> "add-comm " + id + " " + TEST_USER + " " + TEST_TEXT_1);
 
-        List<String> result = commentRepository.findCommentsByBookId(id);
+        List<String> result = commentRepository.findCommentsTextByBookId(id);
         assertThat(result)
                 .isNotNull()
                 .hasSize(1)
@@ -225,7 +224,7 @@ public class LibraryIT {
     @Test
     public void updateCommentByIdTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        User user = userRepository.save(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER, TEST_PASS, TEST_ROLE));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
         commentRepository.save(comment);
 
@@ -301,7 +300,7 @@ public class LibraryIT {
     @Test
     public void deleteCommentByIdTest() throws Exception {
         Book book = addTestBookToDb(TEST_TITLE_1, TEST_AUTHOR_1, TEST_GENRE_1);
-        User user = userRepository.save(new User(TEST_USER));
+        User user = userRepository.save(new User(TEST_USER,TEST_PASS, TEST_ROLE));
         Comment comment = new Comment(book, user, TEST_TEXT_1);
         commentRepository.save(comment);
         Long id = comment.getId();

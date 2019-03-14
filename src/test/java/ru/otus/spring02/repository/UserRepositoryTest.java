@@ -11,9 +11,6 @@ import ru.otus.spring02.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by хитрый жук on 19.01.2019.
- */
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @DirtiesContext
@@ -21,6 +18,8 @@ public class UserRepositoryTest {
 
     private static final String TEST_USER_1 = "testUser";
     private static final String TEST_USER_2 = "testUser2";
+    private static final String TEST_ROLE = "ROLE_USER";
+    private static final String TEST_PASS = "$2y$12$T1cKUFLjDPXnIwe8WZVGeuhmkzvsqzNNvNjbwebmro8fCW.1ppGJS"; //password
 
     @Autowired
     private UserRepository userRepository;
@@ -51,7 +50,7 @@ public class UserRepositoryTest {
     }
 
     private User createTestUser(String name) {
-        User user = new User(name);
+        User user = new User(name, TEST_PASS, TEST_ROLE);
         return userRepository.save(user);
     }
 }

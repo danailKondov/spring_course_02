@@ -4,6 +4,7 @@ import {AddBook} from './Add'
 import Modal from 'react-modal';
 import './library.css'
 import {getAllBooks} from "./Service";
+import Login from "./Login";
 
 Modal.setAppElement('#root');
 
@@ -13,6 +14,8 @@ export default class App extends React.Component {
         books: [],
         isLoading: false,
         isShowComments: false,
+        isAuthenticated: false,
+        username: "",
         comments: []
     };
 
@@ -46,8 +49,12 @@ export default class App extends React.Component {
         this.setState({isShowComments: false});
     };
 
+    handleLogin = (username) => {
+        this.setState({username, isAuthenticated: true});
+    };
+
     render() {
-        const { books, isLoading, isShowComments, comments } = this.state;
+        const { books, isLoading, isShowComments, comments, isAuthenticated, username } = this.state;
 
         return (
             <React.Fragment>
@@ -64,6 +71,7 @@ export default class App extends React.Component {
                             books={books}
                             onDelete={this.handleDeleteBook}
                             onCommentView={this.handleCommentView}
+                            isAuthenticated={isAuthenticated}
                         />
                         : null
                     }
@@ -109,6 +117,13 @@ export default class App extends React.Component {
                         Close
                     </button>
                 </Modal>
+                {
+                    isAuthenticated ?
+                        <div className="loginContainer">
+                            <p>User: {username}</p>
+                        </div>
+                        : <Login onLogin={this.handleLogin}/>
+                }
             </React.Fragment>
         )
     }
