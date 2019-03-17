@@ -75,3 +75,10 @@ View на Thymeleaf, classic Controllers.
 В существующее CRUD-приложение добавлен Spring Security и механизм Form-based аутентификации.
 
 решение: см. _add_form_based_auth_
+
+
+## Настроить в приложении авторизацию на уровне URL и/или доменных сущностей. 
+
+В приложение добавлен кастомный security expression
+
+решение: см. _add_custom_security_expression_

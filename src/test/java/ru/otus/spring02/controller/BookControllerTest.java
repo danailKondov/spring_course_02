@@ -129,4 +129,38 @@ public class BookControllerTest {
                 .delete("/api/books/1"))
                 .andExpect(status().isOk());
     }
+
+    @WithMockUser(
+            username = "test",
+            authorities = {"ROLE_ADMIN"}
+    )
+    @Test
+    public void getBookWithProperAuthTest() throws Exception {
+        when(libraryService.getBookById(1L))
+                .thenReturn(new Book(
+                        TEST_TITLE,
+                        new Genre(TEST_GENRE),
+                        new HashSet<>(Arrays.asList(new Author(TEST_AUTHOR)))));
+
+        mvc.perform(MockMvcRequestBuilders
+                .get("/api/books/1"))
+                .andExpect(status().isOk());
+    }
+
+    @WithMockUser(
+            username = "wrong",
+            authorities = {"ROLE_ADMIN"}
+    )
+    @Test
+    public void getBookWithWrongAuthTest() throws Exception {
+        when(libraryService.getBookById(1L))
+                .thenReturn(new Book(
+                        TEST_TITLE,
+                        new Genre(TEST_GENRE),
+                        new HashSet<>(Arrays.asList(new Author(TEST_AUTHOR)))));
+
+        mvc.perform(MockMvcRequestBuilders
+                .get("/api/books/1"))
+                .andExpect(status().isForbidden());
+    }
 }
