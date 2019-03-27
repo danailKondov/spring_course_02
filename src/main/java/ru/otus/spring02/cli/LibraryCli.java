@@ -1,5 +1,12 @@
 package ru.otus.spring02.cli;
 
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -23,17 +30,23 @@ import java.util.stream.Collectors;
 
 import static org.springframework.shell.table.CellMatchers.table;
 
-/**
- * Created by хитрый жук on 23.12.2018.
- */
 @ShellComponent
 public class LibraryCli {
 
     private LibraryServiceImpl libraryService;
+    private JobLauncher jobLauncher;
+    private Job noSqlMigrationJob;
 
     @Autowired
-    public LibraryCli(LibraryServiceImpl libraryService) {
+    public LibraryCli(LibraryServiceImpl libraryService, JobLauncher jobLauncher, Job noSqlMigrationJob) {
         this.libraryService = libraryService;
+        this.jobLauncher = jobLauncher;
+        this.noSqlMigrationJob = noSqlMigrationJob;
+    }
+
+    @ShellMethod(value = "Start data transfer to MongoDB", key = "to-mongo")
+    public void transferToMongo() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
+        jobLauncher.run(noSqlMigrationJob, new JobParametersBuilder().toJobParameters());
     }
 
     @ShellMethod(value = "Show all authors names", key = "all-names")

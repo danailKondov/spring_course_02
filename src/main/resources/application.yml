@@ -5,6 +5,17 @@ spring:
     password: pass
     initialization-mode: always
 
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: books_reserve
+
+  batch:
+    job:
+      enabled: false
+    initialize-schema: always
+
 #  jpa:
 #    generate-ddl: true
 

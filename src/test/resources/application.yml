@@ -11,6 +11,10 @@ spring:
         password:
         initialization-mode: always
 
+  batch:
+    job:
+      enabled: false
+
   shell:
     interactive:
       enabled: false
