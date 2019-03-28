@@ -82,3 +82,10 @@ View на Thymeleaf, classic Controllers.
 В приложение добавлен кастомный security expression
 
 решение: см. _add_custom_security_expression_
+
+
+## Разработать процедуру миграции данных из реляционного хранилища в NoSQL
+
+Разработать процедуру миграции данных из реляционного хранилища в NoSQL или наоборот используя Spring Batch.
+
+решение: см. _add_spring_batch_
