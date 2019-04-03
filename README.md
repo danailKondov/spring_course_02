@@ -89,3 +89,10 @@ View на Thymeleaf, classic Controllers.
 Разработать процедуру миграции данных из реляционного хранилища в NoSQL или наоборот используя Spring Batch.
 
 решение: см. _add_spring_batch_
+
+
+## Реализовать обработку доменной сущности через каналы Spring Integration
+
+Добавлен сервис генерации случайных комментариев для новых книг, включен с использованием Spring Integration.
+
+решение: см. _add_spring_integration_
