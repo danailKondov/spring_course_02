@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.otus.spring02.integration.BookGateway;
 import ru.otus.spring02.model.Book;
 import ru.otus.spring02.service.LibraryService;
 
@@ -29,6 +30,9 @@ public class BookController {
 
     @Autowired
     private LibraryService libraryService;
+
+    @Autowired
+    private BookGateway bookGateway;
 
     @GetMapping("/")
     public List<BookDto> showAllBooksOnIndexPage() {
@@ -53,7 +57,7 @@ public class BookController {
 
     @PostMapping("/")
     public ResponseEntity<BookDto> addNewBook(@RequestBody BookDto bookDto) {
-        Book book = libraryService.addNewBook(mapDtoToBook(bookDto));
+        Book book = bookGateway.processNewBook(mapDtoToBook(bookDto));
         return book.getId() != null?
                 new ResponseEntity<>(mapBookToDto(book), HttpStatus.OK) :
                 new ResponseEntity<>(HttpStatus.NOT_FOUND);
