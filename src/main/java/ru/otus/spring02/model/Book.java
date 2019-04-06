@@ -39,7 +39,7 @@ public class Book {
     )
     private Set<Author> authors;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "book")
     private Set<Comment> comments;
 
     private String title;
