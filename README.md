@@ -96,3 +96,10 @@ View на Thymeleaf, classic Controllers.
 Добавлен сервис генерации случайных комментариев для новых книг, включен с использованием Spring Integration.
 
 решение: см. _add_spring_integration_
+
+
+## Использовать метрики, healthchecks и logfile к приложению
+
+Добавлен Spring Actuator, метрики, healthchecks, logfile и кастомный HealthCheck.
+
+решение: см. _add_spring_actuator_
