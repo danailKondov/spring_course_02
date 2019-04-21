@@ -103,3 +103,17 @@ View на Thymeleaf, classic Controllers.
 Добавлен Spring Actuator, метрики, healthchecks, logfile и кастомный HealthCheck.
 
 решение: см. _add_spring_actuator_
+
+
+## Обернуть приложение в docker-контейнер
+
+Приложение обернуто в docker-контейнер, БД тоже. Настроена связь между ними.
+
++ Создать из docker/postgresql/ образ БД: ***$ docker build -t postgre_db .***
++ Создать из корня проекта образ приложения: ***$ docker build -t lib_app .***
++ Запускаем БД: ***$ docker run -d --rm -p 127.0.0.1:5432:5432/tcp postgre_db***
++ Запускаем приложение: ***$ docker run -it --rm --network="host" -p 127.0.0.1:8080:8080/tcp lib_app***
++ Все то же самое с docker-compose из корня приложения: ***$ docker-compose up***
++ Остановка: Ctrl+C
+
+решение: см. _add_docker_
