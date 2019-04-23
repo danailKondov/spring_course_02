@@ -117,3 +117,13 @@ View на Thymeleaf, classic Controllers.
 + Остановка: Ctrl+C
 
 решение: см. _add_docker_
+
+
+## Обернуть внешние вызовы в Hystrix
+   
+ Внешний вызов обернут в Hystrix (Hystrix Javanica).
+   
+Для доступа в dashboard: зайти в _http://localhost:8080/hystrix_ и в поле ввода 
+прописать _http://localhost:8080/actuator/hystrix.stream_
+
+решение: см. _add_hystrix_

@@ -1,5 +1,6 @@
 package ru.otus.spring02.service;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,8 +43,13 @@ public class LibraryServiceImpl implements LibraryService {
 
     @Override
     @Transactional(readOnly = true)
+    @HystrixCommand(groupKey = "BookGroup", commandKey = "getAllBooksCommand", fallbackMethod = "getDefaultBooks")
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
+    }
+
+    public List<Book> getDefaultBooks() {
+        return Collections.emptyList();
     }
 
     @Override
