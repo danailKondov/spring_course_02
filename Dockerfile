@@ -5,7 +5,7 @@ RUN mkdir -p $PROJECT_DIR
 WORKDIR $PROJECT_DIR
 
 ADD pom.xml $PROJECT_DIR
-RUN mvn dependency:resolve
+RUN mvn dependency:resolve -B
 
 ADD ./ $PROJECT_DIR/
 RUN mvn install -DskipTests
